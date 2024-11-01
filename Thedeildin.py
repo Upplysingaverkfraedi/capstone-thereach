@@ -22,7 +22,7 @@ def fetch_html(season):
 
 def extract_json_data(html):
     # Match the JSON data inside the "table" object from "all" to the closing of "xg"
-    match = re.search(r'"table":\s*(\{"all":.*?,"xg":\[.*?\]\})', html, re.DOTALL)
+    match = re.search(r'"table":\s*(\{"all":.*?),"tableFilterTypes":\["all","home","away","form"(,"xg")?\]', html, re.DOTALL)
     
     if match:
         json_data = match.group(1)
