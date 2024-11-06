@@ -1,0 +1,157 @@
+---
+title: "Capstone"
+author: "Þráinn Ágúst Arnaldsson"
+date: "2024-10-31"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+**Lesa inn alla pakka**
+```{r, echo=FALSE, message=FALSE}
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(DBI)
+library(RSQLite)
+library(shiny)
+library(readr)
+```
+
+
+**Tengjast gagnagrunninum**
+```{r}
+con <- dbConnect(RSQLite::SQLite(), "C:/Users/Lenovo/Documents/GitHub/capstone-thereach/premier_league.db")
+
+# Skoða hvaða töflur eru í gagnagrunninum
+dbListTables(con)
+```
+
+**Lesa inn gögn úr töflunni**
+```{r}
+Games_data <- dbReadTable(con, "Games")
+
+PlayerStats_data <- dbReadTable(con, "Playerstats")
+
+Stadiums_data <- dbReadTable(con, "Stadiums")
+
+Teams_data <- dbReadTable(con, "Teams")
+
+SqliteSequence_data <- dbReadTable(con, "sqlite_sequence")
+
+#Lesa inn nýju töfluna match_status
+toflur <- dbReadTable(con, "match_status")
+```
+
+**CSV skrá frá vsCode með aðeins aðeins þeim liðum sem tóku þátt í 2019-20 tímabilinu**
+```{r, echo=FALSE, message=FALSE}
+All_2019_2020 <- read_csv("C:/Users/Lenovo/Documents/GitHub/capstone-thereach/Data/All 2019-2020.csv")
+```
+
+**Lesa inn CSV skjal frá Jakobi með staðsetningum á leikvöngum hjá mörgum liðum í Evrópu**
+```{r}
+vellir <- read.csv("stadiums-with-GPS-coordinates.csv", stringsAsFactors = TRUE)
+```
+
+
+**Eyða út öllum liðum sem eru ekki í All_2019_2020 frá vellir töflunni sem sagt í Prem tímabilið 2019-2020**
+```{r}
+#Stilla liðs heitin sem char en ekki sem factor
+All_2019_2020$Name <- as.character(All_2019_2020$Name)
+vellir$Team <- as.character(vellir$Team)
+
+#Eyða út öllum óþarfa bilum í dálkinum Team undir vellir töflunni
+vellir$Team <- trimws(vellir$Team)
+
+#Laga heitið á liðinu AFC Bournemouth
+vellir$Team[vellir$Team == "Bournemouth"] <- "AFC Bournemouth"
+
+Vellir_stadsetning <- vellir[vellir$Team %in% All_2019_2020$Name, ]
+```
+
+**Búa til CSV skjal fyrir Ingvar til þess að búa til kort með aðeins þessum liðum**
+```{r}
+write.csv(Vellir_stadsetning, "vellir_stadsetning.csv", row.names = FALSE)
+
+```
+
+
+
+**Skoða hvaða tímabil(season) koma fram í toflur**
+```{r}
+unique(toflur$season)
+
+# Ef öll tímabil frá 2010-2011 til 2024-2025 eru þá er allt rétt, Líka ef þetta er aðeins til 2023-2024. 
+```
+
+**Eyða út 2024-2025 tímabilinu úr toflur töflunni**
+```{r}
+# Hér er verið að eyða út tímabilinu 2024-2025 þar sem það er ennþá í gangi og gögnin ekki góð til samanburðar við hin gögnin. 
+toflur <- toflur[toflur$season != "2024-2025", ]
+```
+
+
+
+
+
+
+**Bera saman gengi liða síðastliðin ár**
+*Hér er R kóði fyrir Ingvar til að bæta við inn í shiny**
+```{r}
+
+# Assuming `toflur` is your data frame with the columns: Name, season, Pts, status_type
+# If it's not loaded, make sure to load or create `toflur` data frame here.
+
+# Define UI
+ui <- fluidPage(
+  titlePanel("Samanburður á heildarstigum í Ensku úrvaldsdeildinni milli tímabila sem og heima- og útileikir"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("selected_teams", "Veldu lið:", choices = unique(toflur$Name), multiple = TRUE)
+    ),
+    
+    mainPanel(
+      plotOutput("pointsPlot")
+    )
+  )
+)
+
+# Define server logic
+server <- function(input, output) {
+  output$pointsPlot <- renderPlot({
+    # Filter the data based on selected teams and exclude the 2024-2025 season
+    plot_data <- toflur %>%
+      filter(Name %in% input$selected_teams, season != "2024-2025")
+    
+    # Generate the ggplot
+    ggplot(plot_data, aes(x = season, y = Pts, color = Name, linetype = status_type, group = interaction(Name, status_type))) +
+      geom_line(linewidth = 1) +
+      scale_linetype_manual(values = c("All" = "solid", "Home" = "dashed", "Away" = "dotted")) +
+      labs(x = "Tímabil/Season", y = "Heildarstig", title = "Heildarstig eftir valin lið") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
