@@ -1,5 +1,15 @@
 # Capstone verkefni 
 
+## Keyrslu Leiðbeiningar
+
+#### KortEnska
+Áður en kóði er keyrður þarf að downloada þessum pökkum í gegnum R
+- install.packages("tidyverse")
+- install.packages("sf")
+- install.packages("leaflet")
+\
+Næst þarf að ganga úr skugga um það að file path-arnir séu réttir fyrir bæði logo og gögn, en má finna öll gögn í viðeigandi PR. Þegar öllu þessu er lokið er hægt að keyra kóðann í viðeigandi forritunarumhvefi.
+
 ## Verkefni
 Verkefnið er tvíþætt:
 
