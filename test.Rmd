@@ -26,13 +26,11 @@ library(DT)
 library(sf)          
 library(leaflet) 
 library(ggimage)
-library(here)
 ```
 
 *Tengjast gagnagrunninum*
 ```{r}
-con <- dbConnect(RSQLite::SQLite(), here("premier_league.db"))
-
+con <- dbConnect(RSQLite::SQLite(), "C:/Users/jakob/Desktop/capstone-thereach/premier_league.db")
 
 # Skoða hvaða töflur eru í gagnagrunninum
 dbListTables(con)
@@ -40,7 +38,6 @@ dbListTables(con)
 
 
 ```
-
 
 *Lesa inn gögn úr töflunni*
 ```{r}
@@ -125,61 +122,31 @@ ui <- fluidPage(
   tabsetPanel(
     tabPanel("Heim",
              h2("Rýni inn í tímabilið 2019/20"),
-             p("Verkefnið er þróað af eftirfarandi höfundum: 
-               Erlendur Guðnasson, Ingvar Auðunarson, Jakob Stefán Ívarsson og Þráinn Ágúst Arnaldsson. Það byggir á ítarlegri gagnavinnslu úr fjórum stórum CSV skrám sem samanstanda af mikilvægum upplýsingum úr ensku úrvalsdeildinni og eru tengdar saman í nokkrar töflur í gagnagrunninum premier_league.db. Kóðinn er skrifaður í R, SQL og Python, með örlítilli notkun á Regex til að auðvelda gagnagreiningu og sýna tölfræðilegar niðurstöður."),
-             h3("Flipaútskýring"),
-             p("Verkefnið býður upp á dökkt- og ljóstþema til að bæta upplifun notenda."),
-
-             h4("Heim"),
-             p("Velkomin á aðalsíðuna! Hér færðu yfirsýn yfir tilgang forritsins og möguleikann til að skoða margvíslega tölfræði úr ensku úrvalsdeildinni 2019/20. Notaðu flipana efst til að vafra um tölfræði um stöðutöflur, staðsetningar leikvanga, frammistöðu leikmanna og veðmálaupplýsingar."),
-             
-             h4("Síðustu ár"),
-             p("Þessi síða gerir þér kleift að bera saman lið yfir tímabil og sýnir stigatölur þeirra frá tímabilinu 2010/11 til 2023/24 á línuriti. Hér getur þú valið lið og fylgst með þróun árangurs þeirra í stigum yfir árin, sem veitir yfirlit yfir stöðugleika og frammistöðu þeirra í ensku úrvalsdeildinni.
-"),
-             
-             h4("Stöðutafla"),
-             p("Þessi tafla sýnir stigatöfluna fyrir liðin eftir valda leikviku. Þú getur valið leikviku með slider til að sjá hvernig staðan þróast yfir tímabilið. Þú getur einnig skoðað síðustu leiki hvers liðs fyrir valda leikviku og fengið innsýn í árangur þeirra á tímabilinu."),
-             
-             h4("Staðsetningar"),
-             p("Á þessari síðu geturðu skoðað staðsetningu allra leikvanga liða í ensku úrvalsdeildinni 2019/20 á korti með GPS hnitum. Þetta gefur þér möguleika á að sjá landfræðilega dreifingu liða yfir England. Ásamt grafi sem sýnir betur stærðaröð leikvangana."),
-             
-             h4("Færanýtni"),
-             p("Hér eru ýmis tölfræði á scatter-myndritum sem sýna færni leikmanna. Veldu mismunandi gerðir af myndritum til að skoða fjölda marka og mínútna, skot á mark, eða hæstu markaskorara á tímabilinu. Þú getur jafnframt valið tegund framlags, t.d. mörk eða mörk og stoðsendingar samanlagt ef valið er 'Top Goalscorer'."),
-             
-             h4("BetStatistics"),
-             p("Þessi síða býður upp á greiningu á veðmálatölfræði fyrir valið lið. Þú getur séð þróun hagnaðar og taps yfir tímabilið og heildarhagnað í lok þess. Þetta gefur innsýn í veðmálatengdan árangur liðsins og hvort veðmál hafi skilað arði. Gröfin byggja á því að einstaklingur hafi sett 10$ veðmál á hvern einasta leik tiltekins liðs þar sem veðjað var á sigur."),
-             
-             h4("Dómararýni"),
-             p("Á þessari síðu geturðu skoðað ýmsa tölfræði um frammistöðu dómara. Hér eru meðal annars gögn um fjölda brota per spjald, dæmt sigurhlutfall heimaliða og útliða, auk þess sem þú getur séð sigurleiki ákveðinna liða þegar tiltekinn dómari hefur dæmt þá oftast. Þetta gefur áhugaverða innsýn í áhrif dómara á úrslit leikja og á hegðun leikmanna á vellinum."),
-             
-             h4("Liðin"),
-             p("Á þessari síðu er hægt að bera saman tölfræði milli tveggja liða á ýmsum sviðum eins og mörkum, hornum, skotum og brotum, spjöldum og fleira. Þú getur einnig fengið yfirlit yfir meðaltal tölfræðinnar fyrir öll liðin í deildinni. Ef þú vilt sjá heildaryfirlit af öllu þá er hægt að haka við 'Show as table' í hægra horni")
+             p("Gröf og ýmsar töflur varaðandi frammistöðu leikmanna og liða á tilteknu tímabili"),
+             p("Notið takkana til að flakka á milli niðurstaðna og grafa")
     ),
     tabPanel("Síðustu ár",
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("selected_teams", "Veldu lið:", choices = unique(toflur$Name), multiple = TRUE),
-      # Slider to select the season range
-      sliderInput("season_range", "Veldu tímabil fyrir töflu:", min = 2010, max = 2024, value = c(2010, 2024), step = 1, sep = "")
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("selected_teams", "Veldu lið:", choices = unique(toflur$Name), multiple = TRUE)
+        ),
+        mainPanel(
+          plotOutput("pointsPlot")
+        )
+      )
     ),
-    mainPanel(
-      plotOutput("pointsPlot"),
-      tableOutput("pointsSummaryTable")
-    )
-  )
-),
     tabPanel("Stöðutafla",
              h2("Tímabilið 2019/20"),
              fluidRow(
-               column(5,
+               column(5,  # Adjusted width to allow more space on the right
                       h3("Stöðutafla"),
                       sliderInput("game_week", "Veldu tímabilsviku:", min = 1, max = 38, value = 1),
                       div(class = "highlighted-table", tableOutput("league_table"))
                ),
-               column(5, offset = 1,
+               column(5, offset = 1,  # Added offset to shift this column further to the right
                       h3("Síðustu leikir"),
                       selectInput("team_select", "Veldu lið", choices = NULL),
-                      sliderInput("num_games", "Veldu fjölda leikja til að sýna:", min = 1, max = 10, value = 5),
+                      sliderInput("num_games", "Veldu fjölda leikmanna til að sýna:", min = 1, max = 10, value = 5),
                       div(class = "highlighted-table", tableOutput("last_games_table"))
                )
              )
@@ -204,51 +171,73 @@ ui <- fluidPage(
     tabPanel("BetStatistics",
              selectInput("bet_team", "Veldu lið", choices = NULL),
              plotlyOutput("betting_progress"),
-             h3("End of Season Profit/Loss"),
-             uiOutput("end_season_profit_loss")
+            h3("End of Season Profit/Loss"),
+            uiOutput("end_season_profit_loss")
+            
     ),
-    tabPanel("Dómararýni",
-             h2("Dómararýni"),
-             plotlyOutput("fouls_per_card_plot"),
-             plotlyOutput("win_distribution_pie"),
-             plotlyOutput("referee_most_wins_bar")
+    # Updated UI Code for Side-by-Side Select Inputs Directly Above Each Plot
+tabPanel("Dómararýni",
+  h2("Dómararýni"),
+  plotlyOutput("fouls_per_card_plot"),
+  plotlyOutput("win_distribution_pie"),
+  plotlyOutput("referee_most_wins_bar")
+),
+tabPanel("Liðin",
+  h2("2019/20 Liða samanburður", style = "display: inline-block;"),
+  
+  # Action buttons for switching between graph and table view, aligned to the right
+  div(
+    style = "float: right; margin-bottom: 10px;",
+    actionButton("show_graph", "Show as graph"),
+    actionButton("show_table", "Show as table")
+  ),
+  
+  # Conditional panel to show graph view
+  conditionalPanel(
+    condition = "output.view_mode == 'graph'",
+    
+    # Dropdown to select comparison metric
+    selectInput("comparison_metric", "Veldu samanburðarflokk", 
+                choices = list("Goals Scored" = "goals_scored",
+                               "Goals Conceded" = "goals_conceded",
+                               "Corners Won" = "corners_won",
+                               "Corners Conceded" = "corners_conceded",
+                               "Shots" = "shots",
+                               "Shots on Target" = "shots_on_target",
+                               "Fouls" = "fouls",
+                               "Yellow Cards" = "yellow_cards",
+                               "Red Cards" = "red_cards")),
+    
+    # Team selection inputs
+    fluidRow(
+      column(6, selectInput("team1", "Veldu lið 1", choices = NULL)),
+      column(6, selectInput("team2", "Veldu lið 2", choices = NULL))
     ),
-    tabPanel("Liðin",
-             h2("2019/20 Liða samanburður", style = "display: inline-block;"),
-             div(
-               style = "float: right; margin-bottom: 10px;",
-               actionButton("show_graph", "Show as graph"),
-               actionButton("show_table", "Show as table")
-             ),
-             conditionalPanel(
-               condition = "output.view_mode == 'graph'",
-               selectInput("comparison_metric", "Veldu samanburðarflokk", 
-                           choices = list("Goals Scored" = "goals_scored",
-                                          "Goals Conceded" = "goals_conceded",
-                                          "Corners Won" = "corners_won",
-                                          "Corners Conceded" = "corners_conceded",
-                                          "Shots" = "shots",
-                                          "Shots on Target" = "shots_on_target",
-                                          "Fouls" = "fouls",
-                                          "Yellow Cards" = "yellow_cards",
-                                          "Red Cards" = "red_cards")),
-               fluidRow(
-                 column(6, selectInput("team1", "Veldu lið 1", choices = NULL)),
-                 column(6, selectInput("team2", "Veldu lið 2", choices = NULL))
-               ),
-               plotlyOutput("team_metric_plot"),
-               h3("Meðaltal yfir tímabilið"),
-               tableOutput("average_metric_table")
-             ),
-             conditionalPanel(
-               condition = "output.view_mode == 'table'",
-               h3("Meðaltal liðanna yfir tímabilið"),
-               tableOutput("all_teams_average_table")
-             )
-    )
+    
+    # Display combined plot
+    plotlyOutput("team_metric_plot"),
+    
+    # Display average metric table for the selected two teams
+    h3("Average Metric for Each Team"),
+    tableOutput("average_metric_table")
+  ),
+  
+  # Conditional panel to show the table view with all teams' averages
+  conditionalPanel(
+    condition = "output.view_mode == 'table'",
+    h3("Meðaltal liðanna"),
+    tableOutput("all_teams_average_table")
   )
 )
 
+
+
+
+
+
+    
+  )
+)
 
 
 
@@ -259,8 +248,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   # Open database connection at the start of the server
-  con <- dbConnect(RSQLite::SQLite(), here("premier_league.db"))
-
+  con <- dbConnect(RSQLite::SQLite(), "C:/Users/jakob/Desktop/capstone-thereach/premier_league.db")
   
   # Close the database connection when the app stops
   onStop(function() {
@@ -268,8 +256,6 @@ server <- function(input, output, session) {
       dbDisconnect(con)
     }
   })
-  
-  
   
   # Fetch stadium data from the database
   stadiums_data <- dbGetQuery(con, "SELECT Team, FDCOUK, City, Stadium, Capacity, Latitude, Longitude, Country FROM Stadiums")
@@ -283,7 +269,7 @@ server <- function(input, output, session) {
   
   # Set logo URL for each team in the filtered Stadiums_data
   Stadiums_data <- Stadiums_data %>%
-    mutate(Logo_url = here("Logos", paste0(str_replace_all(Team, " ", "_"), ".png")))
+    mutate(Logo_url = paste0("C:/Users/jakob/Desktop/capstone-thereach/Logos/", str_replace_all(Team, " ", "_"), ".png"))
   
   # Check if all images exist and issue a warning if not
   missing_logos <- Stadiums_data %>% filter(!file.exists(Logo_url))
@@ -315,8 +301,8 @@ server <- function(input, output, session) {
       geom_image(aes(image = Logo_url), size = 0.05, by = "width") + 
       coord_flip() +
       labs(title = "Stærð valla í Ensku Úrvalsdeildinni (2019/2020 Season)",
-           x = "Völlur",
-           y = "Stærð (fjöldi sæta)") +
+           x = "Stærð (fjöldi sæta)",
+           y = "Völlur") +
       theme_minimal() +
       theme(plot.title = element_text(hjust = 0.5))
   })
@@ -324,104 +310,98 @@ server <- function(input, output, session) {
   
   
   # Populate team selection choices in alphabetical order
-# Update team selection choices in alphabetical order
 observe({
   teams <- dbGetQuery(con, "SELECT DISTINCT HomeTeam FROM Games ORDER BY HomeTeam ASC")
   updateSelectInput(session, "team_select", choices = teams$HomeTeam)
   updateSelectInput(session, "bet_team", choices = teams$HomeTeam)
 })
-
-# Calculate league table based on selected game week using SQL
-league_table_data <- reactive({
-  game_week <- input$game_week
   
-  # SQL query to calculate points, wins, draws, losses, goal difference, and games played up to the selected game week
-  query <- paste0("
-    WITH GameResults AS (
-      SELECT 
-        HomeTeam AS Team, 
-        FTHG - FTAG AS GoalDifference,
-        CASE WHEN FTR = 'H' THEN 3 WHEN FTR = 'D' THEN 1 ELSE 0 END AS Points,
-        CASE WHEN FTR = 'H' THEN 1 ELSE 0 END AS Win,
-        CASE WHEN FTR = 'D' THEN 1 ELSE 0 END AS Draw,
-        CASE WHEN FTR = 'A' THEN 1 ELSE 0 END AS Loss
-      FROM Games
-      WHERE GW <= ", game_week, "
-      UNION ALL
-      SELECT 
-        AwayTeam AS Team, 
-        FTAG - FTHG AS GoalDifference,
-        CASE WHEN FTR = 'A' THEN 3 WHEN FTR = 'D' THEN 1 ELSE 0 END AS Points,
-        CASE WHEN FTR = 'A' THEN 1 ELSE 0 END AS Win,
-        CASE WHEN FTR = 'D' THEN 1 ELSE 0 END AS Draw,
-        CASE WHEN FTR = 'H' THEN 1 ELSE 0 END AS Loss
-      FROM Games
-      WHERE GW <= ", game_week, "
-    )
-    SELECT 
-      Team,
-      COUNT(*) AS Played,
-      SUM(Win) AS W,
-      SUM(Draw) AS D,
-      SUM(Loss) AS L,
-      SUM(GoalDifference) AS `+/-`,
-      SUM(Points) AS PTS
-    FROM GameResults
-    GROUP BY Team
-    ORDER BY PTS DESC, `+/-` DESC
-  ")
+  # Calculate league table based on selected game week
+  league_table_data <- reactive({
+    query <- paste0("SELECT HomeTeam, AwayTeam, FTHG, FTAG, FTR FROM Games WHERE GW <= ", input$game_week)
+    weekly_games <- dbGetQuery(con, query)
+    
+    teams_data <- list()
+    
+    for (i in 1:nrow(weekly_games)) {
+      row <- weekly_games[i, ]
+      home_team <- row$HomeTeam
+      away_team <- row$AwayTeam
+      home_goals <- row$FTHG
+      away_goals <- row$FTAG
+      result <- row$FTR
+      
+      if (!(home_team %in% names(teams_data))) {
+        teams_data[[home_team]] <- list(Played = 0, W = 0, D = 0, L = 0, `+/-` = 0, PTS = 0)
+      }
+      if (!(away_team %in% names(teams_data))) {
+        teams_data[[away_team]] <- list(Played = 0, W = 0, D = 0, L = 0, `+/-` = 0, PTS = 0)
+      }
+      
+      teams_data[[home_team]]$Played <- teams_data[[home_team]]$Played + 1
+      teams_data[[away_team]]$Played <- teams_data[[away_team]]$Played + 1
+      teams_data[[home_team]]$`+/-` <- teams_data[[home_team]]$`+/-` + (home_goals - away_goals)
+      teams_data[[away_team]]$`+/-` <- teams_data[[away_team]]$`+/-` + (away_goals - home_goals)
+      
+      if (result == "H") {
+        teams_data[[home_team]]$W <- teams_data[[home_team]]$W + 1
+        teams_data[[home_team]]$PTS <- teams_data[[home_team]]$PTS + 3
+        teams_data[[away_team]]$L <- teams_data[[away_team]]$L + 1
+      } else if (result == "A") {
+        teams_data[[away_team]]$W <- teams_data[[away_team]]$W + 1
+        teams_data[[away_team]]$PTS <- teams_data[[away_team]]$PTS + 3
+        teams_data[[home_team]]$L <- teams_data[[home_team]]$L + 1
+      } else {
+        teams_data[[home_team]]$D <- teams_data[[home_team]]$D + 1
+        teams_data[[away_team]]$D <- teams_data[[away_team]]$D + 1
+        teams_data[[home_team]]$PTS <- teams_data[[home_team]]$PTS + 1
+        teams_data[[away_team]]$PTS <- teams_data[[away_team]]$PTS + 1
+      }
+    }
+    
+    league_table_df <- do.call(rbind, lapply(names(teams_data), function(team) {
+      c(Team = team, unlist(teams_data[[team]]))
+    }))
+    
+    league_table_df <- as.data.frame(league_table_df, stringsAsFactors = FALSE)
+    league_table_df[, -1] <- lapply(league_table_df[, -1], as.integer)
+    
+    league_table_df <- league_table_df[order(-league_table_df$PTS, -league_table_df$`+/-`), ]
+    league_table_df$POS <- seq_len(nrow(league_table_df))  # Add position
+    
+    league_table_df
+  })
 
-  # Execute the SQL query to get the league table
-  league_table_df <- dbGetQuery(con, query)
   
-  # Add position based on sorted PTS and goal difference
-  league_table_df$POS <- seq_len(nrow(league_table_df))
-  league_table_df
-})
-
-# Render league table output
-output$league_table <- renderTable({
-  league_data <- league_table_data()
-  if (is.null(league_data)) {
-    return(data.frame(Message = "No data available for the selected game week"))
-  }
-  league_data[, c("POS", "Team", "Played", "W", "D", "L", "+/-", "PTS")]
-}, rownames = FALSE)
-
-# Display the last `n` games for a selected team using SQL for data retrieval and formatting
-output$last_games_table <- renderTable({
-  team <- input$team_select
-  num_games <- input$num_games
-  game_week <- input$game_week  # Use the selected game week as the upper limit
+  output$league_table <- renderTable({
+    league_data <- league_table_data()
+    if (is.null(league_data)) {
+      return(data.frame(Message = "No data available for the selected game week"))
+    }
+    league_data[, c("POS", "Team", "Played", "W", "D", "L", "+/-", "PTS")]
+  }, rownames = FALSE)
   
-  # SQL query to fetch the last `n` games with relevant information
-  query <- paste0("
-    SELECT 
-      GW AS GameWeek, 
-      CASE 
-        WHEN HomeTeam = '", team, "' THEN AwayTeam 
-        ELSE HomeTeam 
-      END AS Opponent,
-      CASE 
-        WHEN HomeTeam = '", team, "' THEN FTHG || ' - ' || FTAG
-        ELSE FTAG || ' - ' || FTHG 
-      END AS Goals,
-      CASE 
-        WHEN (HomeTeam = '", team, "' AND FTR = 'H') OR (AwayTeam = '", team, "' AND FTR = 'A') THEN 'W'
-        WHEN FTR = 'D' THEN 'D'
-        ELSE 'L'
-      END AS Result
-    FROM Games 
-    WHERE (HomeTeam = '", team, "' OR AwayTeam = '", team, "') 
-      AND GW <= ", game_week, "
-    ORDER BY GW DESC 
-    LIMIT ", num_games
-  )
-
-  # Execute query and fetch the last games data
-  last_games <- dbGetQuery(con, query)
-  last_games
-}, rownames = FALSE)
+  # Display the last `n` games for a selected team
+  output$last_games_table <- renderTable({
+    team <- input$team_select
+    num_games <- input$num_games
+    game_week <- input$game_week  # Use the selected game week as the upper limit
+    
+    query <- paste0("SELECT GW, HomeTeam, AwayTeam, FTHG, FTAG, FTR FROM Games WHERE (HomeTeam = '", team,
+                    "' OR AwayTeam = '", team, "') AND GW <= ", game_week, " ORDER BY GW DESC LIMIT ", num_games)
+    last_games <- dbGetQuery(con, query)
+    
+    last_games <- last_games %>%
+      mutate(
+        Opponent = ifelse(HomeTeam == team, AwayTeam, HomeTeam),
+        Goals = ifelse(HomeTeam == team, paste(FTHG, "-", FTAG), paste(FTAG, "-", FTHG)),
+        Result = ifelse((HomeTeam == team & FTR == "H") | (AwayTeam == team & FTR == "A"), "W",
+                        ifelse(FTR == "D", "D", "L"))
+      ) %>%
+      select(GameWeek = GW, Opponent, Goals, Result)
+    
+    last_games
+  }, rownames = FALSE)
 
 
 
@@ -495,65 +475,34 @@ output$last_games_table <- renderTable({
   
    # Populate the dropdown with alphabetically sorted team names
   observe({
-  # SQL query to fetch distinct team names from match_status, sorted alphabetically
-  teams_query <- "SELECT DISTINCT Name FROM match_status ORDER BY Name ASC"
-  teams <- dbGetQuery(con, teams_query)$Name
+    # Fetch distinct team names from match_status table, sorted alphabetically
+    teams_query <- "SELECT DISTINCT Name FROM match_status ORDER BY Name ASC"
+    teams <- dbGetQuery(con, teams_query)$Name
+    
+    # Update the selectInput with sorted team names
+    updateSelectInput(session, "selected_teams", choices = teams)
+  })
   
-  # Update the selectInput with sorted team names
-  updateSelectInput(session, "selected_teams", choices = teams)
+   output$pointsPlot <- renderPlot({
+    # Retrieve data from match_status table using SQL and filter based on selected teams
+    query <- paste0(
+        "SELECT Name, season, Pts, status_type FROM match_status  
+         WHERE Name IN ('", paste(input$selected_teams, collapse = "', '"), "') 
+         AND season != '2024-2025'"
+    )
+    
+    # Run the SQL query to get the plot data
+    plot_data <- dbGetQuery(con, query)
+    
+    # Generate the ggplot
+    ggplot(plot_data, aes(x = season, y = Pts, color = Name, linetype = status_type, group = interaction(Name, status_type))) +
+      geom_line(linewidth = 1) +
+      scale_linetype_manual(values = c("All" = "solid", "Home" = "dashed", "Away" = "dotted")) +
+      labs(x = "Tímabil/Season", y = "Heildarstig", title = "Heildarstig eftir valin lið") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
 })
 
-output$pointsPlot <- renderPlot({
-  # SQL query to retrieve data for selected teams and season, including point summary
-  query <- paste0(
-    "SELECT Name, season, Pts, status_type
-     FROM match_status  
-     WHERE Name IN ('", paste(input$selected_teams, collapse = "', '"), "') 
-     AND season != '2024-2025'"
-  )
-  
-  # Execute SQL query to retrieve the data
-  plot_data <- dbGetQuery(con, query)
-  
-  # Generate the ggplot
-  ggplot(plot_data, aes(x = season, y = Pts, color = Name, linetype = status_type, group = interaction(Name, status_type))) +
-    geom_line(linewidth = 1) +
-    scale_linetype_manual(values = c("All" = "solid", "Home" = "dashed", "Away" = "dotted")) +
-    labs(x = "Tímabil/Season", y = "Heildarstig", title = "Heildarstig eftir valin lið") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-})
-
-# Render the summary table for selected teams by season
-output$pointsSummaryTable <- renderTable({
-  # Return NULL if no teams are selected
-  if (is.null(input$selected_teams) || length(input$selected_teams) == 0) {
-    return(NULL)
-  }
-  
-  # Retrieve the selected season range
-  season_min <- input$season_range[1]
-  season_max <- input$season_range[2]
-  
-  # Modify summary query to filter based on season range
-  summary_query <- paste0(
-    "SELECT Name, season,
-            SUM(CASE WHEN status_type = 'All' THEN Pts ELSE 0 END) AS All_Points,
-            SUM(CASE WHEN status_type = 'Home' THEN Pts ELSE 0 END) AS Home_Points,
-            SUM(CASE WHEN status_type = 'Away' THEN Pts ELSE 0 END) AS Away_Points
-     FROM match_status 
-     WHERE Name IN ('", paste(input$selected_teams, collapse = "', '"), "')
-     AND season BETWEEN '", season_min, "-2010' AND '", season_max, "-2024'
-     GROUP BY Name, season
-     ORDER BY Name, season"
-  )
-  
-  # Execute the query and retrieve the summary data
-  summary_data <- dbGetQuery(con, summary_query)
-  
-  # Return the summary data for rendering in the table
-  summary_data
-})
 
 
 
@@ -685,12 +634,12 @@ output$pointsSummaryTable <- renderTable({
     win_data <- dbGetQuery(con, query)
     
     plot_ly(
-      labels = c("Heima lið vann", "Jafntefli", "Úti lið vann"),
+      labels = c("Heima sigrar", "Jafntefli", "Úti sigrar"),
       values = c(win_data$Total_Home_Team_Wins, win_data$Total_Draws, win_data$Total_Away_Team_Wins),
       type = "pie",
       textinfo = "label+percent",
       insidetextorientation = "radial"
-    ) %>% layout(title = "Dreifing á sigrum dæmdra leikja")
+    ) %>% layout(title = "Dreifing á sigrum")
   })
 
   # Query 3: Number of wins by the team each referee officiated for the most
@@ -879,9 +828,9 @@ get_combined_weekly_metric <- function(team1, team2, metric) {
     fig <- plot_ly(combined_metric, x = ~GW, y = ~Total_Metric_Value, color = ~Team, type = 'scatter', mode = 'lines+markers') %>%
       layout(
         title = paste("Comparison of", input$comparison_metric, "between", input$team1, "and", input$team2),
-        xaxis = list(title = "Leikvika"),
-        yaxis = list(title = "Fjöldi"),
-        legend = list(title = list(text = "Lið"))
+        xaxis = list(title = "Game Week"),
+        yaxis = list(title = "Metric Value"),
+        legend = list(title = list(text = "Teams"))
       )
     
     fig
@@ -908,109 +857,7 @@ get_combined_weekly_metric <- function(team1, team2, metric) {
     
     all_teams_average <- get_all_teams_average()
     all_teams_average
-  })# Update team selection choices in alphabetical order
-  
-  
-  
-  
-  
-observe({
-  teams <- dbGetQuery(con, "SELECT DISTINCT HomeTeam FROM Games ORDER BY HomeTeam ASC")
-  updateSelectInput(session, "team_select", choices = teams$HomeTeam)
-  updateSelectInput(session, "bet_team", choices = teams$HomeTeam)
-})
-
-# Calculate league table based on selected game week using SQL
-league_table_data <- reactive({
-  game_week <- input$game_week
-  
-  # SQL query to calculate points, wins, draws, losses, goal difference, and games played up to the selected game week
-  query <- paste0("
-    WITH GameResults AS (
-      SELECT 
-        HomeTeam AS Team, 
-        FTHG - FTAG AS GoalDifference,
-        CASE WHEN FTR = 'H' THEN 3 WHEN FTR = 'D' THEN 1 ELSE 0 END AS Points,
-        CASE WHEN FTR = 'H' THEN 1 ELSE 0 END AS Win,
-        CASE WHEN FTR = 'D' THEN 1 ELSE 0 END AS Draw,
-        CASE WHEN FTR = 'A' THEN 1 ELSE 0 END AS Loss
-      FROM Games
-      WHERE GW <= ", game_week, "
-      UNION ALL
-      SELECT 
-        AwayTeam AS Team, 
-        FTAG - FTHG AS GoalDifference,
-        CASE WHEN FTR = 'A' THEN 3 WHEN FTR = 'D' THEN 1 ELSE 0 END AS Points,
-        CASE WHEN FTR = 'A' THEN 1 ELSE 0 END AS Win,
-        CASE WHEN FTR = 'D' THEN 1 ELSE 0 END AS Draw,
-        CASE WHEN FTR = 'H' THEN 1 ELSE 0 END AS Loss
-      FROM Games
-      WHERE GW <= ", game_week, "
-    )
-    SELECT 
-      Team,
-      COUNT(*) AS Played,
-      SUM(Win) AS W,
-      SUM(Draw) AS D,
-      SUM(Loss) AS L,
-      SUM(GoalDifference) AS `+/-`,
-      SUM(Points) AS PTS
-    FROM GameResults
-    GROUP BY Team
-    ORDER BY PTS DESC, `+/-` DESC
-  ")
-
-  # Execute the SQL query to get the league table
-  league_table_df <- dbGetQuery(con, query)
-  
-  # Add position based on sorted PTS and goal difference
-  league_table_df$POS <- seq_len(nrow(league_table_df))
-  league_table_df
-})
-
-# Render league table output
-output$league_table <- renderTable({
-  league_data <- league_table_data()
-  if (is.null(league_data)) {
-    return(data.frame(Message = "No data available for the selected game week"))
-  }
-  league_data[, c("POS", "Team", "Played", "W", "D", "L", "+/-", "PTS")]
-}, rownames = FALSE)
-
-# Display the last `n` games for a selected team using SQL for data retrieval and formatting
-output$last_games_table <- renderTable({
-  team <- input$team_select
-  num_games <- input$num_games
-  game_week <- input$game_week  # Use the selected game week as the upper limit
-  
-  # SQL query to fetch the last `n` games with relevant information
-  query <- paste0("
-    SELECT 
-      GW AS GameWeek, 
-      CASE 
-        WHEN HomeTeam = '", team, "' THEN AwayTeam 
-        ELSE HomeTeam 
-      END AS Opponent,
-      CASE 
-        WHEN HomeTeam = '", team, "' THEN FTHG || ' - ' || FTAG
-        ELSE FTAG || ' - ' || FTHG 
-      END AS Goals,
-      CASE 
-        WHEN (HomeTeam = '", team, "' AND FTR = 'H') OR (AwayTeam = '", team, "' AND FTR = 'A') THEN 'W'
-        WHEN FTR = 'D' THEN 'D'
-        ELSE 'L'
-      END AS Result
-    FROM Games 
-    WHERE (HomeTeam = '", team, "' OR AwayTeam = '", team, "') 
-      AND GW <= ", game_week, "
-    ORDER BY GW DESC 
-    LIMIT ", num_games
-  )
-
-  # Execute query and fetch the last games data
-  last_games <- dbGetQuery(con, query)
-  last_games
-}, rownames = FALSE)
+  })
   
   # Set output options for conditional panels
   outputOptions(output, "view_mode", suspendWhenHidden = FALSE)
