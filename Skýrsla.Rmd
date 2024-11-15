@@ -1,0 +1,1333 @@
+---
+title: "Enska Úrvalsdeildin 2019/20"
+author: "Erlendur Guðnason, Ingvar Auðunarson, Jakob Stefán Ívarsson og Þráinn Ágúst Arnaldsson"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    theme: cerulean
+    highlight: tango
+    code_folding: hide
+    number_sections: true
+    df_print: paged
+    css: |
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+      }
+      h1, h2, h3 {
+        color: #0056b3;
+        font-weight: bold;
+      }
+      a {
+        color: #0056b3;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      pre, code {
+        background-color: #f1f1f1;
+        padding: 5px;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      table, th, td {
+        border: 1px solid #ddd;
+      }
+      th, td {
+        padding: 10px;
+        text-align: left;
+      }
+  pdf_document:
+    toc: true
+    toc_depth: 3
+header-includes:
+  - \usepackage{setspace}
+  - \setstretch{1.5}  # Set line spacing for PDF
+  - \usepackage{geometry}
+  - \geometry{margin=1in}  # Adjusts margins for PDF
+fontsize: 11pt
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+
+
+```
+
+
+
+# Inngangur
+
+Þetta verkefni felur í sér þróun á mælaborði fyrir enska úrvalsdeildina, byggt á ítarlegri gagnavinnslu úr leikjagögnum aðallega frá tímabilinu 2019/20. Með þessu mælaborði gefst notendum kostur á að skoða margvíslega tölfræði sem varpar ljósi á frammistöðu liðanna, færni leikmanna, dómararýni og annað áhugavert. Markmið verkefnisins er að veita áhugasömum knattspyrnu-áhugamönnum, tölfræðingum og aðilum í íþróttaiðnaði nýstárlega og innsýnarríka leið til að greina leikjatölfræði ensku úrvalsdeildarinnar á notendavænan og sjónrænan hátt.
+
+Skýrslan mun fjalla um ferlið við gagnaöflun, gagnavinnslu og útfærslu á mælaborði sem gerir notendum kleift að skoða ítarlega tölfræði úr ensku úrvalsdeildinni með það að markmiði að sýna fram á hvernig gagnaöflun, gagnagreining og myndræn framsetning geta bætt upplifun og þekkingu notenda á enska fótboltanum. Að lokum verður svo svarað nokkrum rannsóknarspurningum.
+
+# Aðferðafræði
+
+## Lýsing á gagnaöflun
+Til að hefja verkefnið var leitað að opinberum gögnum á netinu sem gætu gagnast við greiningu á ensku úrvalsdeildinni í knattspyrnu. Eftir ítarlega leit fundust þrjár CSV-skrár með viðeigandi gögnum á vefsíðunum Kaggle, Github og football-data.co.uk. Þessar skrár veittu aðgang að lykilupplýsingum um leiki tímabilið 2019/20, leikmannatölfræði, leikvangahnit og veðmálastuðla, svo dæmi séu nefnd. Gögnin voru samþætt í einum SQLite-gagnagrunni, premier_league.db, til að auðvelda úrvinnslu og hagræðingu á greiningarvinnu.
+
+### Upphafleg gögn og heimildir
+Eftirfarandi síður og skrár voru nýttar:
+
+football-data.co.uk:
+- games_season19-20.csv
+Kaggle:
+- Premier League Player Stats.csv
+GitHub:
+- stadiums-with-GPS-coordinates.csv
+
+Öll þessi skjöl voru síðan sameinuð í einn SQLite-gagnagrunn með kóðanum database.py, sem bjó til premier_league.db til að auðvelda úrvinnslu og hagræðingu.
+
+### Viðbótargögn
+
+Eftir uppsetningu gagnagrunnsins var farið í ítarlega yfirferð á tiltækum gögnum til að meta hvort frekari upplýsingar gætu bætt gagnasafnið og stuðlað að dýpri innsýn. Útkoman var sú að aukin gögn myndu auka gæði greiningarinnar. Því var útbúið Python-forrit, FotMob.py, sem nýtti HTML kóða frá viðurkenndri fótboltasíðu, FotMob.com, til að safna enn frekari upplýsingum.
+
+Forritið tók inn tengla á HTML-síður FotMob og umbreytti gögnum í CSV-skrár fyrir ensku úrvalsdeildina, með áherslu á árin 2010 til dagsins í dag. Gögn frá núverandi tímabili, 2024/25, voru undanskilin þar sem þau eru enn í vinnslu og myndu mögulega skekkja heildargreiningu.
+
+
+Við gagnasöfnunina var nýttur reglulegur segðakóði til að einangra aðeins þau gögn sem voru mikilvæg fyrir verkefnið. Á FotMob voru fjórar gagnatöflur tiltækar fyrir hverja leiktíð: All, sem sýnir heildarstöðu liðanna; Home, sem birtir árangur liðanna á heimavelli; Away, sem sýnir árangur á útivelli; og Last 5 matches, sem gefur upplýsingar um gengi liðanna í síðustu fimm leikjum. Með því að taka þessar töflur inn var unnt að bjóða upp á ítarlegar greiningar á bæði heildarárangri og sértækum þáttum liða í ensku úrvalsdeildinni.
+
+### Samþætting við database.py
+Til að einfalda skil og vinnu á öllum gögnunum var FotMob.py sameinað við database.py. Sameinaði kóðinn nú bæði upphaflegu CSV-skrárnar, sem fundust á netinu, og sótti allar töflur af FotMob.com. Að lokum bjó kóðinn til gagnagrunninn í heild sinni í einum keyrslupakk - premier_league.db.
+
+![](C:/Users/jakob/Pictures/mælaborð/bla.PNG)
+
+
+Gögnin sem safnað var frá football_data.co.uk, Github og Kaggle eru opin og leyfisskilmálar þeirra gera notendum kleift að nýta þau í rannsóknum og verkefnum með fyrirvara um tilvísun í uppruna gagnanna. FotMob.com gögnin voru notuð til viðbótar við þessi opinberu gögn til að auðga gagnagrunninn og gefa betri innsýn í mismunandi þætti árangurs í deildinni.
+
+
+
+## Gagnavinnsla
+
+Eftir að við sóttum gögnin á netinu í formi .csv skrár, ákváðum við að safna saman öllum upplýsingum í einn gagnagrunn sem við nefndum premier_league.db. Markmið okkar var að tryggja skilvirka úrvinnslu á gögnum sem væru bæði rétt flokkuð og tilbúin til frekari greiningar. Í því ferli þurfti að hreinsa gögnin og skipuleggja þau í gagnlegar töflur sem myndu nýtast í greiningu á ýmsum þáttum enska úrvalsdeildartímabilsins 2019/20. Við notuðum R, SQL og Python í þessu ferli og tryggðum með hjálp Regex að gögnin væru eins nákvæm og mögulegt er. Hér að neðan fylgir lýsing á vinnuferlinu sem við fylgdum í hverju skrefi.
+
+### 2.2.1 Gögn og töflur
+
+#### Stadiums: 
+Taflan Stadiums inniheldur ítarlegar upplýsingar um alla heimavelli liða í ensku úrvalsdeildinni, ásamt fleiri völlum í efstu deildum Evrópu, eins og staðsetningu og áhorfendafjölda. Þar sem gögnin innihéldu einnig upplýsingar um velli úr öðrum deildum, eins og spænsku La Liga og frönsku Ligue 1, notuðum við Regular Expressions (Regex) til að fjarlægja þá velli sem ekki tengdust ensku úrvalsdeildinni. Regex hjálpaði okkur að sía gögnin út frá landi og einangra þannig einungis þá velli sem tilheyrðu liðunum í ensku úrvalsdeildinni tímabilið 2019/20.
+
+Útbúin var stakur kóði í R og SQL sem hægt er að keyra til þess að fá réttan gagnagrunn fyrir mælaborðið.
+
+![](C:/Users/jakob/Pictures/mælaborð/stadium.PNG)
+
+
+#### PlayerStats:
+Þessi tafla veitir ítarlegar upplýsingar um hvern leikmann í ensku úrvalsdeildinni, þar með talið fjölda spilaðra mínútna, mörk, stoðsendingar, og fleiri tölfræðileg atriði. Við ákváðum að halda öllum upplýsingum óbreyttum. Þetta gagnaúrræði var sérstaklega mikilvægt til að greina einstaklingsframmistöðu á leikmannastigi.
+
+
+![](C:/Users/jakob/Pictures/mælaborð/player.PNG)
+
+#### Games:
+Taflan inniheldur gögn fyrir alla leiki í ensku úrvalsdeildinni tímabilið 2019/20. Þar er meðal annars að finna upplýsingar um keppendur, dómara, lokaniðurstöður og ýtarlegar upplýsingar um frammistöðu í leiknum, svo sem mörk, skot, hornspyrnur, brot og fleira.
+
+![](C:/Users/jakob/Pictures/mælaborð/game.PNG)
+
+
+#### Match_Status:
+Í þessari töflu eru gögn um stigasöfnun liða í ensku úrvalsdeildinni, bæði heima og á útivelli, ásamt heildarstigum yfir tímabilið. Taflan inniheldur einnig upplýsingar um stigafjölda liðanna frá tímabilinu 2011/12 til 2024/25, en í okkar tilviki skoðuðum við aðeins stigasöfnun og skiptingu milli heimavalla og útivalla. Taflan er sérstaklega gagnleg til að greina frammistöðu liðanna og meta áhrif heimavallar á heildarárangur þeirra.
+
+![](C:/Users/jakob/Pictures/mælaborð/match.PNG)
+
+
+### 2.2.2 Hreinsun gagna
+Þegar við höfðum aflað okkar gagna úr mismunandi gögnum, var fyrsta skrefið að tryggja að þau væru rétt flokkað og hreinsað áður en þau voru sett inn í gagnagrunninn. Hér er lýsing á hreinsunarferlinu:
+
+#### Stadiums: 
+Við notuðum Regex til að sía út upplýsingar um velli sem ekki tilheyrðu liðum í ensku úrvalsdeildinni á tímabilinu 2019/20. Þar sem gögnin innihéldu einnig upplýsingar um velli úr öðrum deildum og löndum, eins og í efstu deild á Spáni og Frakklandi, var nauðsynlegt að einangra velli þeirra liða sem tilheyrðu enska úrvalsdeildinni. Þar sem gögnin skilgreindu aðeins landið og ekki deildina sjálfa, var Regex notuð til að leita að og fjarlægja gögn sem ekki tengdust úrvalsdeildinni.
+
+![](C:/Users/jakob/Pictures/mælaborð/REGEX.PNG)
+
+
+#### Match_status:
+Við notuðum Regex til að sía út upplýsingar úr match_status töflunni sem tengdust ekki þeim lykilatriðum sem við vildum greina fyrir ensku úrvalsdeildina. Töflunni var safnað frá HTML-gögnum, og þar sem hún innihélt fjölbreyttar upplýsingar, eins og "tableFilterTypes" sem skráir stöðu liða bæði á heimavelli og útivelli, var Regex notuð til að einangra hluta sem tengdist lykli með nafni "table" og aðalinnihald lykilsins "all". Þetta gerði okkur kleift að ná í viðeigandi gögn fyrir frekari úrvinnslu.
+
+
+![](C:/Users/jakob/Pictures/mælaborð/segð.PNG)
+
+#### PlayerStats, Games og Match_Status:
+Þessar töflur voru hreinsaðar og staðlaðar með hefðbundinni gagnavinnslu og SQL skipunum til að tryggja að gögnin væru samræmd og án villna. Þar á meðal var að breyta gögnum þar sem nauðsyn krafðist og að laga texta og töflur til að bæta yfirsýn og gæði gagnanna.
+
+
+### 2.2.3 Viðbætur og skipulagning
+Til að tryggja samræmda skipulagningu og auðvelda gagnaúrvinnslu bættum við við fleiri upplýsingum í gagnagrunninn, eins og Teams töflunni sem var gerð út frá PlayerStats. Þetta einfaldaði samskipti milli töflna og gaf okkur betri yfirsýn yfir hverja einingu:
+
+#### Teams: 
+Taflan Teams var bætt við gagnagrunninn til að innihalda upplýsingar um öll lið í ensku úrvalsdeildinni, ásamt einstöku auðkenni fyrir hvert lið. Með því að hafa sérstaka töflu fyrir lið var mögulegt að samræma upplýsingar um lið og tengja þær auðveldlega við tölfræðilegar upplýsingar úr öðrum töflum. Notuðum SQL til þess:
+
+![](C:/Users/jakob/Pictures/mælaborð/team.PNG)
+
+### Niðurstöður úr gagnavinnslu
+Að lokinni hreinsun og skipulagningu voru gögnin okkar vel uppsett í gagnagrunninum premier_league.db með fjórum lykiltöflum: Stadiums, PlayerStats, Games, Match_Status og Teams. Þessi gagnagrunnur gerði okkur kleift að vinna með gögnin á skilvirkan hátt og bjóða upp á ítarlega greiningu á tölfræði enska úrvalsdeildartímabilsins 2019/20. Gögnin voru nú til staðar á stöðluðu formi og tilbúin til að vinna með í gagnagreiningum mælaborðsins.
+
+Sérhver tafla hafði einstaka hlutverki að gegna í greiningunni og tryggði að mælaborðið gæti varpað ljósi á heildarframmistöðu leikmanna, liða og deildarinnar sjálfrar á sem gagnrýnasta og sjónrænt áhugaverðasta hátt.
+
+
+
+
+## Tengsl við námsefnið
+
+Í þessu verkefni notuðum við fjölbreyttar aðferðir í gagnavinnslu og greiningu gagna þar sem áherslan var á að notast við SQL, reglulegar segðir og stakræna stærðfræði, sem við höfum verið vön að vinna með í fyrri verkefnum. Að auki nýttum við Shiny til að hanna gagnvirkt viðmót, þar sem notandi getur valið lið, tímabil og mælikvarða fyrir greiningu. Þetta auðveldaði flæði gagna frá gagnagrunni til sjónrænnar framsetningar og stuðlaði að betri túlkun og notendaupplifun.
+
+### SQL
+Við notuðum SQL í gegnum SQLite til að tengjast gagnagrunninum okkar, `premier_league.db`, og framkvæma fjölbreytta gagnavinnslu og greiningar. Hér eru nokkur dæmi um hvernig SQL var beitt í verkefninu:
+
+- **Hleðsla gagna:** Gögn voru sótt úr öllum töflum gagnagrunnsins til frekari úrvinnslu í R. 
+- **Síun gagna:** Gögn voru síuð fyrir ákveðin lið, tímabil eða mælikvarða með skilyrtum fyrirspurnum. 
+- **Útreikningar:** Við reiknuðum stig, sigra, töp og jafntefli fyrir liðin og bjuggum til stöðutöflur eftir leikvikum.
+- **Greining á dómurum:** SQL var notað til að greina hegðun dómara, svo sem fjölda brota á hvert spjald.
+- **Tölfræðigreining leikmanna:** Við drógum fram frammistöður leikmanna, svo sem skoruð mörk og spilatíma, og tengdum þær við aðrar breytur. 
+
+
+SQL reyndist ómissandi til að tryggja nákvæma og sértæka gagnaöflun og fyrir flóknar greiningar, sérstaklega þegar unnið var með stór gögn og flókin tengsl milli breyta.
+
+### Reglulegar segðir
+Reglulegar segðir (REGEX) voru notaðar í mörgum þáttum verkefnisins til að vinna með og flokka gögn. Nokkur dæmi um notkun þeirra eru:
+
+- **Síun liða í Ensku Úrvalsdeildinni:** Við notuðum REGEX til að sía út öll þau lið sem voru í Ensku Úrvalsdeildinni tímabilið 2019-2020 úr skrá með gögnum um evrópsk lið.
+- **Samræmi skráarheita:** Með REGEX umbreyttum við nöfnum liða svo að þau væru sambærileg, t.d. "Manchester City" varð "Manchester_City", sem auðveldaði tengingu við viðeigandi skrár.
+- **Úrvinnsla gagna úr HTML:** Við beittum reglulegum segðum til að lesa gögn úr HTML-skrám frá vefsvæðum eins og FotMob.com og draga fram upplýsingar um leikjatímabil.
+
+### Stakræn stærðfræði
+
+Stakræn stærðfræði var lykilatriði í túlkun gagna og samanburðar. Dæmi um notkun hennar eru:
+
+- **Samanburður á liðum:** Við greindum fjölda marka, marka fengin á sig og spjalda til að bera saman frammistöður liða.
+- **Hlutföll og tíðnidreifing:** Við reiknuðum hlutföll fyrir sigra, jafntefli og töp til að sýna útkomur í myndrænu formi.
+- **Tímaraðir:** Gögn voru sett fram á línuritum til að sýna þróun frammistöðu liða yfir leikvikur.
+
+---
+
+Verkefnið sameinar SQL fyrir flóknar gagnavinnslur, reglulegar segðir til að flokka gögn og tryggja samræmi, og stakræna stærðfræði fyrir samanburð og túlkun gagna. Þetta sýnir heildræna nálgun á vinnslu stórra gagna og notkun þeirra í greiningu fyrir notendavænt kerfi. Með þessum aðferðum tókst að búa til notendavænt og gagnvirkt kerfi sem nýtir sér stærðfræðilegar og tæknilegar lausnir úr námsefninu.
+
+
+
+
+
+
+
+
+
+## Kóðarýni
+
+
+### Uppsetning gagnagrunns
+```{r eval = FALSE}
+library(tidyverse)
+library(rvest)
+library(dplyr)
+library(DBI)
+library(RSQLite)
+library(shiny)
+library(ggplot2)
+library(plotly)
+library(shinyjs)
+library(shinydashboard)
+library(DT)
+library(sf)          
+library(leaflet) 
+library(ggimage)
+library(here)
+```
+
+Þessi fyrsti kóðabútur hleður inn öllum nauðsynlegum pökkum fyrir gagnagreiningu, gagnavinnslu, tengingu við gagnagrunn, og uppsetningu Shiny-mælaborðsins. Áður en þessu er keyrt þarf þó að framkvæma install.packages("NafnAPakka") í console.
+
+```{r eval = FALSE}
+con <- dbConnect(RSQLite::SQLite(), "C:/Users/jakob/Desktop/capstone-thereach/premier_league.db")
+
+# Skoða hvaða töflur eru í gagnagrunninum
+dbListTables(con)
+```
+
+Hér tengjumst við SQLite gagnagrunninum premier_league.db og birtum allar töflur sem eru til staðar í gagnagrunninum. Þetta gefur yfirlit yfir gagnasafnið sem við erum að vinna með.
+
+
+```{r eval = FALSE}
+Games_data <- dbReadTable(con, "Games")
+PlayerStats_data <- dbReadTable(con, "Playerstats")
+Stadiums_data <- dbReadTable(con, "Stadiums")
+Teams_data <- dbReadTable(con, "Teams")
+SqliteSequence_data <- dbReadTable(con, "sqlite_sequence")
+toflur <- dbReadTable(con, "match_status")
+```
+
+Þessi hluti les inn öll gögn úr tilteknum töflum í gagnagrunninum. Hver tafla hefur mismunandi gögn, eins og leikjaupplýsingar í Games, leikmannaupplýsingar í PlayerStats, upplýsingar um velli í Stadiums, og liðaupplýsingar í Teams. match_status taflan inniheldur upplýsingar um stigasöfnun liða á mismunandi tímabilum.
+
+
+```{r eval = FALSE}
+Games_data <- dbGetQuery(con, "SELECT * FROM Games")
+PlayerStats_data <- dbGetQuery(con, "SELECT * FROM PlayerStats")
+Stadiums_data <- dbGetQuery(con, "SELECT * FROM Stadiums")
+Teams_data <- dbGetQuery(con, "SELECT * FROM Teams")
+match_status_data <- dbGetQuery(con, "SELECT * FROM match_status")
+
+```
+Hér sækjum við öll gögn með SQL-fyrirspurnum til hverrar töflu í gagnagrunninum. Þetta gerir það mögulegt að lesa gögn frá gagnagrunninum yfir í R á sveigjanlegan hátt, sérstaklega ef við þurfum aðeins hluta af gögnum í stærri gagnasafni.
+
+
+
+### Shiny App UI - Uppsetning og útlit
+
+```{r eval = FALSE}
+ui <- fluidPage(
+  # Custom CSS for dark mode and table styles
+  tags$head(tags$style(HTML("...")))
+)
+
+```
+
+Svokallað fluidPage skipulag stjórnar því hvernig notendaviðmótið er sett upp. Við byrjum á því að bæta sérsniðnum CSS stílum fyrir ljóst og dökkt þema með tags$head(tags$style(HTML(...))). Hér er mælaborðið stillt upp með mismunandi bakgrunni, leturlitum og sjónrænum stílum fyrir betri upplifun í ljósa og dökka stillingum.
+
+```{r eval = FALSE}
+tags$div(
+  style = "background: linear-gradient(135deg, #38003c, #4CAF50); padding: 20px; text-align: center; color: #ffffff; display: flex; align-items: center; justify-content: center;",
+  tags$div(
+    h1("Enska Úrvalsdeildin", style = "font-size: 3em; font-weight: bold; margin: 0;"),
+    h3("Tímabilið 2019/20", style = "font-size: 1.5em; font-weight: normal; color: #d0d0d0; margin-top: 10px;")
+  ),
+  # Dark Mode Toggle
+  tags$div(
+    style = "position: absolute; top: 20px; right: 20px;",
+    checkboxInput("theme_switch", "Dark Mode", value = FALSE)
+  )
+)
+```
+
+Þessi kóði sýnir titil verkefnisins með aðlaðandi litaskiptingu og staðsetur dökkstillingarhnapp efst í hægra horninu. JavaScript-kóði virkjar síðan dökkt og ljóst þema sem breytir útlitinu með einum smelli á theme_switch hnappinn.
+
+
+```{r eval = FALSE}
+tabsetPanel(
+    tabPanel("Heim",
+             h2("Rýni inn í tímabilið 2019/20"),
+             p("Verkefnið er þróað af eftirfarandi höfundum: 
+               Erlendur Guðnasson, Ingvar Auðunarson, Jakob Stefán Ívarsson og Þráinn Ágúst Arnaldsson. Það byggir á ítarlegri gagnavinnslu úr fjórum stórum CSV skrám sem samanstanda af mikilvægum upplýsingum úr ensku úrvalsdeildinni og eru tengdar saman í nokkrar töflur í gagnagrunninum premier_league.db. Kóðinn er skrifaður í R, SQL og Python, með örlítilli notkun á Regex til að auðvelda gagnagreiningu og sýna tölfræðilegar niðurstöður."),
+             h3("Flipaútskýring"),
+             p("Verkefnið býður upp á dökkt- og ljóstþema til að bæta upplifun notenda."),
+
+             h4("Heim"),
+             p("Velkomin á aðalsíðuna! Hér færðu yfirsýn yfir tilgang forritsins og möguleikann til að skoða margvíslega tölfræði úr ensku úrvalsdeildinni 2019/20. Notaðu flipana efst til að vafra um tölfræði um stöðutöflur, staðsetningar leikvanga, frammistöðu leikmanna og veðmálaupplýsingar."),
+             
+             h4("Síðustu ár"),
+             p("Þessi síða gerir þér kleift að bera saman lið yfir tímabil og sýnir stigatölur þeirra frá tímabilinu 2010/11 til 2023/24 á línuriti. Hér getur þú valið lið og fylgst með þróun árangurs þeirra í stigum yfir árin, sem veitir yfirlit yfir stöðugleika og frammistöðu þeirra í ensku úrvalsdeildinni.
+"),
+             
+             h4("Stöðutafla"),
+             p("Þessi tafla sýnir stigatöfluna fyrir liðin eftir valda leikviku. Þú getur valið leikviku með slider til að sjá hvernig staðan þróast yfir tímabilið. Þú getur einnig skoðað síðustu leiki hvers liðs fyrir valda leikviku og fengið innsýn í árangur þeirra á tímabilinu."),
+             
+             h4("Staðsetningar"),
+             p("Á þessari síðu geturðu skoðað staðsetningu allra leikvanga liða í ensku úrvalsdeildinni 2019/20 á korti með GPS hnitum. Þetta gefur þér möguleika á að sjá landfræðilega dreifingu liða yfir England. Ásamt grafi sem sýnir betur stærðaröð leikvangana."),
+             
+             h4("Færanýtni"),
+             p("Hér eru ýmis tölfræði á scatter-myndritum sem sýna færni leikmanna. Veldu mismunandi gerðir af myndritum til að skoða fjölda marka og mínútna, skot á mark, eða hæstu markaskorara á tímabilinu. Þú getur jafnframt valið tegund framlags, t.d. mörk eða mörk og stoðsendingar samanlagt ef valið er 'Top Goalscorer'."),
+             
+             h4("BetStatistics"),
+             p("Þessi síða býður upp á greiningu á veðmálatölfræði fyrir valið lið. Þú getur séð þróun hagnaðar og taps yfir tímabilið og heildarhagnað í lok þess. Þetta gefur innsýn í veðmálatengdan árangur liðsins og hvort veðmál hafi skilað arði. Gröfin byggja á því að einstaklingur hafi sett 10$ veðmál á hvern einasta leik tiltekins liðs þar sem veðjað var á sigur."),
+             
+             h4("Dómararýni"),
+             p("Á þessari síðu geturðu skoðað ýmsa tölfræði um frammistöðu dómara. Hér eru meðal annars gögn um fjölda brota per spjald, dæmt sigurhlutfall heimaliða og útliða, auk þess sem þú getur séð sigurleiki ákveðinna liða þegar tiltekinn dómari hefur dæmt þá oftast. Þetta gefur áhugaverða innsýn í áhrif dómara á úrslit leikja og á hegðun leikmanna á vellinum."),
+             
+             h4("Liðin"),
+             p("Á þessari síðu er hægt að bera saman tölfræði milli tveggja liða á ýmsum sviðum eins og mörkum, hornum, skotum og brotum, spjöldum og fleira. Þú getur einnig fengið yfirlit yfir meðaltal tölfræðinnar fyrir öll liðin í deildinni. Ef þú vilt sjá heildaryfirlit af öllu þá er hægt að haka við 'Show as table' í hægra horni")
+    ),
+    tabPanel("Síðustu ár",
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("selected_teams", "Veldu lið:", choices = unique(toflur$Name), multiple = TRUE),
+      # Slider to select the season range
+      sliderInput("season_range", "Veldu tímabil fyrir töflu:", min = 2010, max = 2024, value = c(2010, 2024), step = 1, sep = "")
+    ),
+    mainPanel(
+      plotOutput("pointsPlot"),
+      tableOutput("pointsSummaryTable")
+    )
+  )
+),
+    tabPanel("Stöðutafla",
+             h2("Tímabilið 2019/20"),
+             fluidRow(
+               column(5,
+                      h3("Stöðutafla"),
+                      sliderInput("game_week", "Veldu tímabilsviku:", min = 1, max = 38, value = 1),
+                      div(class = "highlighted-table", tableOutput("league_table"))
+               ),
+               column(5, offset = 1,
+                      h3("Síðustu leikir"),
+                      selectInput("team_select", "Veldu lið", choices = NULL),
+                      sliderInput("num_games", "Veldu fjölda leikja til að sýna:", min = 1, max = 10, value = 5),
+                      div(class = "highlighted-table", tableOutput("last_games_table"))
+               )
+             )
+    ),
+    tabPanel("Staðsetningar",
+             h2("Leikvangar á korti"),
+             leafletOutput("stadiums_map"),
+             h3("Samanburður á sætisfjölda leikvanga"),
+             plotOutput("stadium_capacity_plot")
+    ),
+    tabPanel("Færanýtni",
+             selectInput("plot_choice", "Veldu tegund af scatter plot:", 
+                         choices = c("Goals vs. Minutes", "Shots on Target vs. Goals", "Top Goalscorers")),
+             conditionalPanel(
+               condition = "input.plot_choice == 'Top Goalscorers'",
+               radioButtons("goal_type", "Veldu týpu markframlags:", 
+                            choices = c("Goals" = "goals", "Goals + Assists" = "goals_assists")),
+               sliderInput("top_n_scorers", "Veldu fjölda af markahæstu leikmönnum:", min = 1, max = 251, value = 10)
+             ),
+             plotlyOutput("efficiency_plot")
+    ),
+    tabPanel("BetStatistics",
+             selectInput("bet_team", "Veldu lið", choices = NULL),
+             plotlyOutput("betting_progress"),
+             h3("End of Season Profit/Loss"),
+             uiOutput("end_season_profit_loss")
+    ),
+    tabPanel("Dómararýni",
+             h2("Dómararýni"),
+             plotlyOutput("fouls_per_card_plot"),
+             plotlyOutput("win_distribution_pie"),
+             plotlyOutput("referee_most_wins_bar")
+    ),
+    tabPanel("Liðin",
+             h2("2019/20 Liða samanburður", style = "display: inline-block;"),
+             div(
+               style = "float: right; margin-bottom: 10px;",
+               actionButton("show_graph", "Show as graph"),
+               actionButton("show_table", "Show as table")
+             ),
+             conditionalPanel(
+               condition = "output.view_mode == 'graph'",
+               selectInput("comparison_metric", "Veldu samanburðarflokk", 
+                           choices = list("Goals Scored" = "goals_scored",
+                                          "Goals Conceded" = "goals_conceded",
+                                          "Corners Won" = "corners_won",
+                                          "Corners Conceded" = "corners_conceded",
+                                          "Shots" = "shots",
+                                          "Shots on Target" = "shots_on_target",
+                                          "Fouls" = "fouls",
+                                          "Yellow Cards" = "yellow_cards",
+                                          "Red Cards" = "red_cards")),
+               fluidRow(
+                 column(6, selectInput("team1", "Veldu lið 1", choices = NULL)),
+                 column(6, selectInput("team2", "Veldu lið 2", choices = NULL))
+               ),
+               plotlyOutput("team_metric_plot"),
+               h3("Average Metric for Each Team"),
+               tableOutput("average_metric_table")
+             ),
+             conditionalPanel(
+               condition = "output.view_mode == 'table'",
+               h3("Meðaltal liðanna yfir tímabilið"),
+               tableOutput("all_teams_average_table")
+             )
+    )
+  )
+)
+```
+
+Hér er notendaviðmót sett upp þ.e. flipar til að flakka á milli. Þeir eru skilgreindir hér með vitnun í viðeigandi gröf, texta og aðra fylgihluti sem gera viðmótið meira gagnvirkt.
+
+
+### Server kóði fyrir Shiny
+
+```{r eval = FALSE}
+server <- function(input, output, session) {
+  
+  # Open database connection at the start of the server
+  con <- dbConnect(RSQLite::SQLite(), "C:/Users/jakob/Desktop/capstone-thereach/premier_league.db")
+  
+  # Close the database connection when the app stops
+  onStop(function() {
+    if (dbIsValid(con)) {
+      dbDisconnect(con)
+    }
+  })
+  
+  # Fetch stadium data from the database
+  stadiums_data <- dbGetQuery(con, "SELECT Team, FDCOUK, City, Stadium, Capacity, Latitude, Longitude, Country FROM Stadiums")
+  
+  # Define the regex pattern to match only the 20 Premier League teams for the 2019/20 season
+  teams_pattern <- "\\b(?:Liverpool|Manchester City|Manchester United|Chelsea|Leicester City|Tottenham Hotspur|Wolverhampton Wanderers|Arsenal|Sheffield United|Burnley|Southampton|Everton|Newcastle United|Crystal Palace|Brighton & Hove Albion|West Ham United|Aston Villa|Bournemouth|Watford|Norwich City)\\b"
+  
+  # Filter stadiums_data to include only the 20 specified teams
+  Stadiums_data <- stadiums_data %>%
+    filter(str_detect(Team, teams_pattern))
+  
+  # Set logo URL for each team in the filtered Stadiums_data
+  Stadiums_data <- Stadiums_data %>%
+    mutate(Logo_url = paste0("C:/Users/jakob/Desktop/capstone-thereach/Logos/", str_replace_all(Team, " ", "_"), ".png"))
+  
+  # Check if all images exist and issue a warning if not
+  missing_logos <- Stadiums_data %>% filter(!file.exists(Logo_url))
+  if (nrow(missing_logos) > 0) {
+    warning("Missing logo files for teams: ", paste(missing_logos$Team, collapse = ", "))
+  }
+  
+  # Convert to sf object for leaflet
+  Location_data <- st_as_sf(Stadiums_data, coords = c("Longitude", "Latitude"), crs = 4326)
+  
+  # Create leaflet map with team logos, using only the filtered Stadiums_data
+  output$stadiums_map <- renderLeaflet({
+    leaflet() %>%
+      addTiles() %>%
+      addMarkers(data = Location_data,
+                 lng = ~st_coordinates(geometry)[, 1],
+                 lat = ~st_coordinates(geometry)[, 2],
+                 icon = ~icons(iconUrl = Logo_url, iconWidth = 30, iconHeight = 30),
+                 popup = ~paste("<b>Team:</b>", Team, "<br><b>Stadium:</b>", Stadium, "<br><b>City:</b>", City, "<br><b>Capacity:</b>", Capacity))
+  })
+  
+  # Create a sorted data frame of stadiums for the bar plot
+  stadiums_sorted <- Stadiums_data %>%
+    arrange(desc(Capacity))
+  
+  # Render a ggplot graph with images for stadiums
+  output$stadium_capacity_plot <- renderPlot({
+    ggplot(stadiums_sorted, aes(x = reorder(Stadium, Capacity), y = Capacity)) +
+      geom_image(aes(image = Logo_url), size = 0.05, by = "width") + 
+      coord_flip() +
+      labs(title = "Stærð valla í Ensku Úrvalsdeildinni (2019/2020 Season)",
+           x = "Völlur",
+           y = "Stærð (fjöldi sæta)") +
+      theme_minimal() +
+      theme(plot.title = element_text(hjust = 0.5))
+  })
+  
+  
+  
+  # Populate team selection choices in alphabetical order
+observe({
+  teams <- dbGetQuery(con, "SELECT DISTINCT HomeTeam FROM Games ORDER BY HomeTeam ASC")
+  updateSelectInput(session, "team_select", choices = teams$HomeTeam)
+  updateSelectInput(session, "bet_team", choices = teams$HomeTeam)
+})
+  
+  # Calculate league table based on selected game week
+  league_table_data <- reactive({
+    query <- paste0("SELECT HomeTeam, AwayTeam, FTHG, FTAG, FTR FROM Games WHERE GW <= ", input$game_week)
+    weekly_games <- dbGetQuery(con, query)
+    
+    teams_data <- list()
+    
+    for (i in 1:nrow(weekly_games)) {
+      row <- weekly_games[i, ]
+      home_team <- row$HomeTeam
+      away_team <- row$AwayTeam
+      home_goals <- row$FTHG
+      away_goals <- row$FTAG
+      result <- row$FTR
+      
+      if (!(home_team %in% names(teams_data))) {
+        teams_data[[home_team]] <- list(Played = 0, W = 0, D = 0, L = 0, `+/-` = 0, PTS = 0)
+      }
+      if (!(away_team %in% names(teams_data))) {
+        teams_data[[away_team]] <- list(Played = 0, W = 0, D = 0, L = 0, `+/-` = 0, PTS = 0)
+      }
+      
+      teams_data[[home_team]]$Played <- teams_data[[home_team]]$Played + 1
+      teams_data[[away_team]]$Played <- teams_data[[away_team]]$Played + 1
+      teams_data[[home_team]]$`+/-` <- teams_data[[home_team]]$`+/-` + (home_goals - away_goals)
+      teams_data[[away_team]]$`+/-` <- teams_data[[away_team]]$`+/-` + (away_goals - home_goals)
+      
+      if (result == "H") {
+        teams_data[[home_team]]$W <- teams_data[[home_team]]$W + 1
+        teams_data[[home_team]]$PTS <- teams_data[[home_team]]$PTS + 3
+        teams_data[[away_team]]$L <- teams_data[[away_team]]$L + 1
+      } else if (result == "A") {
+        teams_data[[away_team]]$W <- teams_data[[away_team]]$W + 1
+        teams_data[[away_team]]$PTS <- teams_data[[away_team]]$PTS + 3
+        teams_data[[home_team]]$L <- teams_data[[home_team]]$L + 1
+      } else {
+        teams_data[[home_team]]$D <- teams_data[[home_team]]$D + 1
+        teams_data[[away_team]]$D <- teams_data[[away_team]]$D + 1
+        teams_data[[home_team]]$PTS <- teams_data[[home_team]]$PTS + 1
+        teams_data[[away_team]]$PTS <- teams_data[[away_team]]$PTS + 1
+      }
+    }
+    
+    league_table_df <- do.call(rbind, lapply(names(teams_data), function(team) {
+      c(Team = team, unlist(teams_data[[team]]))
+    }))
+    
+    league_table_df <- as.data.frame(league_table_df, stringsAsFactors = FALSE)
+    league_table_df[, -1] <- lapply(league_table_df[, -1], as.integer)
+    
+    league_table_df <- league_table_df[order(-league_table_df$PTS, -league_table_df$`+/-`), ]
+    league_table_df$POS <- seq_len(nrow(league_table_df))  # Add position
+    
+    league_table_df
+  })
+
+  
+  output$league_table <- renderTable({
+    league_data <- league_table_data()
+    if (is.null(league_data)) {
+      return(data.frame(Message = "No data available for the selected game week"))
+    }
+    league_data[, c("POS", "Team", "Played", "W", "D", "L", "+/-", "PTS")]
+  }, rownames = FALSE)
+  
+  # Display the last `n` games for a selected team
+  output$last_games_table <- renderTable({
+    team <- input$team_select
+    num_games <- input$num_games
+    game_week <- input$game_week  # Use the selected game week as the upper limit
+    
+    query <- paste0("SELECT GW, HomeTeam, AwayTeam, FTHG, FTAG, FTR FROM Games WHERE (HomeTeam = '", team,
+                    "' OR AwayTeam = '", team, "') AND GW <= ", game_week, " ORDER BY GW DESC LIMIT ", num_games)
+    last_games <- dbGetQuery(con, query)
+    
+    last_games <- last_games %>%
+      mutate(
+        Opponent = ifelse(HomeTeam == team, AwayTeam, HomeTeam),
+        Goals = ifelse(HomeTeam == team, paste(FTHG, "-", FTAG), paste(FTAG, "-", FTHG)),
+        Result = ifelse((HomeTeam == team & FTR == "H") | (AwayTeam == team & FTR == "A"), "W",
+                        ifelse(FTR == "D", "D", "L"))
+      ) %>%
+      select(GameWeek = GW, Opponent, Goals, Result)
+    
+    last_games
+  }, rownames = FALSE)
+
+
+
+  
+  output$efficiency_plot <- renderPlotly({
+  fig <- NULL
+  
+  if (input$plot_choice == "Goals vs. Minutes") {
+    # Query for Goals vs. Minutes plot
+    query <- "SELECT PLAYER, MIN, G FROM PlayerStats WHERE MIN > 0 AND G > 0"
+    plot_data <- dbGetQuery(con, query)
+    fig <- ggplot(plot_data, aes(x = MIN, y = G, label = PLAYER)) +
+      geom_point(color = "#1f77b4", size = 3, alpha = 0.7) +  # Blue points with transparency
+      labs(title = "Goals vs. Minutes Played", x = "Minutes Played", y = "Goals") +
+      theme_minimal(base_size = 15) +
+      theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5))
+
+  } else if (input$plot_choice == "Shots on Target vs. Goals") {
+    # Query for Shots on Target vs. Goals plot
+    query <- "SELECT PLAYER, SOG, G FROM PlayerStats WHERE SOG > 0"
+    plot_data <- dbGetQuery(con, query)
+    fig <- ggplot(plot_data, aes(x = SOG, y = G, label = PLAYER)) +
+      geom_point(color = "#ff7f0e", size = 3, alpha = 0.7) +  # Orange points with transparency
+      labs(title = "Shots on Target vs. Goals", x = "Shots on Target", y = "Goals") +
+      theme_minimal(base_size = 15) +
+      theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5))
+
+  } else if (input$plot_choice == "Top Goalscorers") {
+    # Set the number of top scorers
+    top_n <- input$top_n_scorers
+    
+    if (input$goal_type == "goals") {
+      # Query for top goalscorers based on goals only
+      query <- paste0(
+        "SELECT PLAYER, G 
+         FROM PlayerStats 
+         WHERE G > 0 
+         ORDER BY G DESC 
+         LIMIT ", top_n
+      )
+      plot_data <- dbGetQuery(con, query)
+      fig <- ggplot(plot_data, aes(x = reorder(PLAYER, -G), y = G, label = PLAYER)) +
+        geom_bar(stat = "identity", fill = "blue") +
+        labs(title = paste("Top", top_n, "Goalscorers"), x = "Player", y = "Goals") +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      
+    } else {
+      # Query for top goal contributors based on goals + assists
+      query <- paste0(
+        "SELECT PLAYER, (G + ASST) AS Contributions 
+         FROM PlayerStats 
+         WHERE (G + ASST) > 0 
+         ORDER BY Contributions DESC 
+         LIMIT ", top_n
+      )
+      plot_data <- dbGetQuery(con, query)
+      fig <- ggplot(plot_data, aes(x = reorder(PLAYER, -Contributions), y = Contributions, label = PLAYER)) +
+        geom_bar(stat = "identity", fill = "purple") +
+        labs(title = paste("Top", top_n, "Goal Contributors (Goals + Assists)"), x = "Player", y = "Goals + Assists") +
+        theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    }
+  }
+
+  # Convert ggplot to plotly and add custom layout
+  ggplotly(fig) %>% layout(
+    title = list(text = fig$labels$title, x = 0.5, font = list(size = 24, color = "darkblue")),
+    xaxis = list(title = fig$labels$x, titlefont = list(size = 18)),
+    yaxis = list(title = fig$labels$y, titlefont = list(size = 18))
+  )
+})
+  
+   # Populate the dropdown with alphabetically sorted team names
+  observe({
+  # SQL query to fetch distinct team names from match_status, sorted alphabetically
+  teams_query <- "SELECT DISTINCT Name FROM match_status ORDER BY Name ASC"
+  teams <- dbGetQuery(con, teams_query)$Name
+  
+  # Update the selectInput with sorted team names
+  updateSelectInput(session, "selected_teams", choices = teams)
+})
+
+output$pointsPlot <- renderPlot({
+  # SQL query to retrieve data for selected teams and season, including point summary
+  query <- paste0(
+    "SELECT Name, season, Pts, status_type
+     FROM match_status  
+     WHERE Name IN ('", paste(input$selected_teams, collapse = "', '"), "') 
+     AND season != '2024-2025'"
+  )
+  
+  # Execute SQL query to retrieve the data
+  plot_data <- dbGetQuery(con, query)
+  
+  # Generate the ggplot
+  ggplot(plot_data, aes(x = season, y = Pts, color = Name, linetype = status_type, group = interaction(Name, status_type))) +
+    geom_line(linewidth = 1) +
+    scale_linetype_manual(values = c("All" = "solid", "Home" = "dashed", "Away" = "dotted")) +
+    labs(x = "Tímabil/Season", y = "Heildarstig", title = "Heildarstig eftir valin lið") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+})
+
+# Render the summary table for selected teams by season
+output$pointsSummaryTable <- renderTable({
+  # Return NULL if no teams are selected
+  if (is.null(input$selected_teams) || length(input$selected_teams) == 0) {
+    return(NULL)
+  }
+  
+  # Retrieve the selected season range
+  season_min <- input$season_range[1]
+  season_max <- input$season_range[2]
+  
+  # Modify summary query to filter based on season range
+  summary_query <- paste0(
+    "SELECT Name, season,
+            SUM(CASE WHEN status_type = 'All' THEN Pts ELSE 0 END) AS All_Points,
+            SUM(CASE WHEN status_type = 'Home' THEN Pts ELSE 0 END) AS Home_Points,
+            SUM(CASE WHEN status_type = 'Away' THEN Pts ELSE 0 END) AS Away_Points
+     FROM match_status 
+     WHERE Name IN ('", paste(input$selected_teams, collapse = "', '"), "')
+     AND season BETWEEN '", season_min, "-2010' AND '", season_max, "-2024'
+     GROUP BY Name, season
+     ORDER BY Name, season"
+  )
+  
+  # Execute the query and retrieve the summary data
+  summary_data <- dbGetQuery(con, summary_query)
+  
+  # Return the summary data for rendering in the table
+  summary_data
+})
+
+
+
+
+  # Debugging step: Print database connection and query
+  observe({
+    print("Database connection status:")
+    print(dbIsValid(con))
+  })
+  
+ output$betting_progress <- renderPlotly({
+  team <- input$bet_team
+  team_games_query <- paste0(
+    "SELECT 
+       ROW_NUMBER() OVER (ORDER BY Date) AS Week,  -- Use row numbering instead of GameWeek if Date exists
+       CASE 
+         WHEN HomeTeam = '", team, "' AND FTR = 'H' THEN (B365H * 10) - 10
+         WHEN AwayTeam = '", team, "' AND FTR = 'A' THEN (B365A * 10) - 10
+         ELSE -10 
+       END AS Profit
+     FROM Games 
+     WHERE HomeTeam = '", team, "' OR AwayTeam = '", team, "'"
+  )
+  
+  team_games <- dbGetQuery(con, team_games_query)
+  
+  # Calculate cumulative profit
+  team_games$Cumulative_Profit <- cumsum(team_games$Profit)
+  
+  # Plot using plotly
+  fig <- plot_ly()
+  for (i in 2:nrow(team_games)) {
+    segment_color <- ifelse(team_games$Cumulative_Profit[i-1] >= 0, "green", "red")
+    fig <- fig %>%
+      add_trace(
+        x = team_games$Week[(i-1):i], 
+        y = team_games$Cumulative_Profit[(i-1):i], 
+        type = 'scatter', 
+        mode = 'lines+markers',
+        line = list(color = segment_color, width = 2),
+        marker = list(color = segment_color, size = 8),
+        hoverinfo = "text",
+        text = paste("Week:", team_games$Week[(i-1):i], "<br>Profit:", round(team_games$Cumulative_Profit[(i-1):i], 2)),
+        showlegend = FALSE
+      )
+  }
+  
+  fig <- fig %>%
+    layout(
+      title = paste("Uppsafnaður hagnaður/tap fyrir ", team),
+      xaxis = list(title = "Leikvika"),
+      yaxis = list(title = "Uppsafnaður hagnaður/tap ($)")
+    )
+  
+  fig
+})
+
+
+  
+  output$end_season_profit_loss <- renderUI({
+  req(input$bet_team)
+  
+  team <- input$bet_team
+  season_profit_query <- paste0(
+    "SELECT 
+       SUM(CASE 
+         WHEN HomeTeam = '", team, "' AND FTR = 'H' THEN (B365H * 10) - 10
+         WHEN AwayTeam = '", team, "' AND FTR = 'A' THEN (B365A * 10) - 10
+         ELSE -10 
+       END) AS Cumulative_Profit
+     FROM Games 
+     WHERE HomeTeam = '", team, "' OR AwayTeam = '", team, "'"
+  )
+  
+  season_profit <- dbGetQuery(con, season_profit_query)$Cumulative_Profit
+  
+  color <- ifelse(season_profit >= 0, "green", "red")
+  HTML(paste0(
+    '<div style="border: 2px solid ', color, '; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: ', color, '10;">',
+    '<h4 style="color: ', color, ';"><i class="fa fa-dollar-sign"></i> Lok tímabils hagnaður/tap</h4>',
+    '<p style="font-size: 1.2em; color: ', color, ';">$', round(season_profit, 2), '</p>',
+    '</div>'
+  ))
+})
+  
+  
+  
+  
+  
+  
+  # Query 1: Calculate fouls per card for each referee
+  output$fouls_per_card_plot <- renderPlotly({
+    query <- "
+    SELECT 
+        Referee,
+        SUM(HF + AF) AS Total_Fouls,
+        SUM(HY + AY) AS Total_Yellow_Cards,
+        SUM(HR + AR) AS Total_Red_Cards
+    FROM 
+        games
+    GROUP BY 
+        Referee;
+    "
+    referee_data <- dbGetQuery(con, query)
+    referee_data$Total_Cards <- referee_data$Total_Yellow_Cards + referee_data$Total_Red_Cards
+    referee_data$Fouls_Per_Card <- referee_data$Total_Fouls / referee_data$Total_Cards
+
+    fig <- ggplot(referee_data, aes(x = reorder(Referee, -Fouls_Per_Card), y = Fouls_Per_Card)) +
+      geom_bar(stat = "identity") +
+      labs(title = "Brot á hvert spjald að meðaltali fyrir hvern og einn dómara",
+           x = "Dómari",
+           y = "Brot á hvert spjald") +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+      
+    ggplotly(fig)
+  })
+
+  # Query 2: Distribution of home wins, draws, and away wins
+  output$win_distribution_pie <- renderPlotly({
+    query <- "
+    SELECT 
+        SUM(CASE WHEN FTR = 'H' THEN 1 ELSE 0 END) AS Total_Home_Team_Wins,
+        SUM(CASE WHEN FTR = 'D' THEN 1 ELSE 0 END) AS Total_Draws,
+        SUM(CASE WHEN FTR = 'A' THEN 1 ELSE 0 END) AS Total_Away_Team_Wins
+    FROM 
+        games;
+    "
+    win_data <- dbGetQuery(con, query)
+    
+    plot_ly(
+      labels = c("Heima lið vann", "Jafntefli", "Úti lið vann"),
+      values = c(win_data$Total_Home_Team_Wins, win_data$Total_Draws, win_data$Total_Away_Team_Wins),
+      type = "pie",
+      textinfo = "label+percent",
+      insidetextorientation = "radial"
+    ) %>% layout(title = "Dreifing á sigrum dæmdra leikja")
+  })
+
+  # Query 3: Number of wins by the team each referee officiated for the most
+  output$referee_most_wins_bar <- renderPlotly({
+    query <- "
+    SELECT Referee, WinningTeam, MAX(Wins) AS Wins FROM (
+        SELECT Referee, 
+               CASE WHEN FTR = 'H' THEN HomeTeam ELSE AwayTeam END AS WinningTeam, 
+               COUNT(*) AS Wins
+        FROM Games
+        WHERE FTR IN ('H', 'A')
+        GROUP BY Referee, WinningTeam
+    )
+    GROUP BY Referee
+    ORDER BY Wins DESC;
+    "
+    referee_most_wins <- dbGetQuery(con, query)
+    
+    fig <- ggplot(referee_most_wins, aes(x = Referee, y = Wins, fill = WinningTeam)) +
+      geom_bar(stat = "identity") +
+      labs(title = "Sigursælasta lið hvers dómara",
+           x = "Dómari", y = "Fjöldi sigra") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    
+    ggplotly(fig)
+  })
+  
+  
+  
+  
+  
+  
+  
+
+ # Populate team choices for comparison
+observe({
+  teams <- dbGetQuery(con, "SELECT DISTINCT HomeTeam FROM Games ORDER BY HomeTeam ASC")
+  
+  # Populate "Veldu lið 1" in alphabetical order
+  updateSelectInput(session, "team1", choices = teams$HomeTeam)
+  
+  # Populate "Veldu lið 2" in reverse alphabetical order
+  updateSelectInput(session, "team2", choices = rev(teams$HomeTeam))
+})
+
+# Helper function to calculate weekly goals scored and conceded
+# Combine data for both teams in a single function
+# Function to get combined metrics for both teams
+# Function to calculate weekly metrics for both teams
+get_combined_weekly_metric <- function(team1, team2, metric) {
+  query <- paste0("SELECT GW, HomeTeam, AwayTeam, FTHG, FTAG, HC, AC, \"HS\", \"AS\", HST, AST, HF, AF, HY, AY, HR, AR 
+                   FROM Games WHERE (HomeTeam = '", team1, "' OR AwayTeam = '", team1, "' OR 
+                                    HomeTeam = '", team2, "' OR AwayTeam = '", team2, "') ORDER BY GW")
+  team_games <- dbGetQuery(con, query)
+
+  # Calculate the metric for both teams
+  team1_metric <- team_games %>%
+      filter(HomeTeam == team1 | AwayTeam == team1) %>%
+      mutate(Metric_Value = switch(metric,
+                                   "goals_scored" = ifelse(HomeTeam == team1, FTHG, FTAG),
+                                   "goals_conceded" = ifelse(HomeTeam == team1, FTAG, FTHG),
+                                   "corners_won" = ifelse(HomeTeam == team1, HC, AC),
+                                   "corners_conceded" = ifelse(HomeTeam == team1, AC, HC),
+                                   "shots" = ifelse(HomeTeam == team1, `HS`, `AS`),
+                                   "shots_on_target" = ifelse(HomeTeam == team1, HST, AST),
+                                   "fouls" = ifelse(HomeTeam == team1, HF, AF),
+                                   "yellow_cards" = ifelse(HomeTeam == team1, HY, AY),
+                                   "red_cards" = ifelse(HomeTeam == team1, HR, AR))) %>%
+      group_by(GW) %>%
+      summarize(Total_Metric_Value = sum(Metric_Value, na.rm = TRUE)) %>%
+      mutate(Team = team1)
+
+  team2_metric <- team_games %>%
+      filter(HomeTeam == team2 | AwayTeam == team2) %>%
+      mutate(Metric_Value = switch(metric,
+                                   "goals_scored" = ifelse(HomeTeam == team2, FTHG, FTAG),
+                                   "goals_conceded" = ifelse(HomeTeam == team2, FTAG, FTHG),
+                                   "corners_won" = ifelse(HomeTeam == team2, HC, AC),
+                                   "corners_conceded" = ifelse(HomeTeam == team2, AC, HC),
+                                   "shots" = ifelse(HomeTeam == team2, `HS`, `AS`),
+                                   "shots_on_target" = ifelse(HomeTeam == team2, HST, AST),
+                                   "fouls" = ifelse(HomeTeam == team2, HF, AF),
+                                   "yellow_cards" = ifelse(HomeTeam == team2, HY, AY),
+                                   "red_cards" = ifelse(HomeTeam == team2, HR, AR))) %>%
+      group_by(GW) %>%
+      summarize(Total_Metric_Value = sum(Metric_Value, na.rm = TRUE)) %>%
+      mutate(Team = team2)
+
+  combined_metric <- bind_rows(team1_metric, team2_metric)
+  combined_metric
+}
+
+# Reactive value to track the view mode
+  view_mode <- reactiveVal("graph")
+  
+  # Update view mode when buttons are clicked
+  observeEvent(input$show_graph, {
+    view_mode("graph")
+  })
+  
+  observeEvent(input$show_table, {
+    view_mode("table")
+  })
+  
+  # Define the get_team_average_metric function for a single team and metric
+  get_team_average_metric <- function(team_name, metric) {
+    query <- paste0("SELECT HomeTeam, AwayTeam, FTHG, FTAG, HC, AC, \"HS\", \"AS\", HST, AST, HF, AF, HY, AY, HR, AR 
+                     FROM Games WHERE HomeTeam = '", team_name, "' OR AwayTeam = '", team_name, "'")
+    team_games <- dbGetQuery(con, query)
+
+    avg_metric <- team_games %>%
+        mutate(Metric_Value = switch(metric,
+                                     "goals_scored" = ifelse(HomeTeam == team_name, FTHG, FTAG),
+                                     "goals_conceded" = ifelse(HomeTeam == team_name, FTAG, FTHG),
+                                     "corners_won" = ifelse(HomeTeam == team_name, HC, AC),
+                                     "corners_conceded" = ifelse(HomeTeam == team_name, AC, HC),
+                                     "shots" = ifelse(HomeTeam == team_name, `HS`, `AS`),
+                                     "shots_on_target" = ifelse(HomeTeam == team_name, HST, AST),
+                                     "fouls" = ifelse(HomeTeam == team_name, HF, AF),
+                                     "yellow_cards" = ifelse(HomeTeam == team_name, HY, AY),
+                                     "red_cards" = ifelse(HomeTeam == team_name, HR, AR))) %>%
+        summarize(Average_Metric_Value = mean(Metric_Value, na.rm = TRUE)) %>%
+        mutate(Team = team_name)
+
+    avg_metric
+  }
+  
+  # Function to calculate season averages for all teams across all metrics
+  get_all_teams_average <- function() {
+    teams <- dbGetQuery(con, "SELECT DISTINCT HomeTeam FROM Games ORDER BY HomeTeam ASC")$HomeTeam
+    
+    # Initialize a data frame to store all metrics for all teams
+    all_teams_average <- data.frame(
+      Team = character(),
+      `Goals Scored` = numeric(),
+      `Goals Conceded` = numeric(),
+      `Corners Won` = numeric(),
+      `Corners Conceded` = numeric(),
+      `Shots` = numeric(),
+      `Shots on Target` = numeric(),
+      `Fouls` = numeric(),
+      `Yellow Cards` = numeric(),
+      `Red Cards` = numeric(),
+      stringsAsFactors = FALSE
+    )
+    
+    # Loop through each team and calculate averages for each metric
+    for (team in teams) {
+      avg_goals_scored <- get_team_average_metric(team, "goals_scored")$Average_Metric_Value
+      avg_goals_conceded <- get_team_average_metric(team, "goals_conceded")$Average_Metric_Value
+      avg_corners_won <- get_team_average_metric(team, "corners_won")$Average_Metric_Value
+      avg_corners_conceded <- get_team_average_metric(team, "corners_conceded")$Average_Metric_Value
+      avg_shots <- get_team_average_metric(team, "shots")$Average_Metric_Value
+      avg_shots_on_target <- get_team_average_metric(team, "shots_on_target")$Average_Metric_Value
+      avg_fouls <- get_team_average_metric(team, "fouls")$Average_Metric_Value
+      avg_yellow_cards <- get_team_average_metric(team, "yellow_cards")$Average_Metric_Value
+      avg_red_cards <- get_team_average_metric(team, "red_cards")$Average_Metric_Value
+
+      # Add the team's averages to the data frame
+      all_teams_average <- rbind(all_teams_average, data.frame(
+        Team = team,
+        `Goals Scored` = avg_goals_scored,
+        `Goals Conceded` = avg_goals_conceded,
+        `Corners Won` = avg_corners_won,
+        `Corners Conceded` = avg_corners_conceded,
+        `Shots` = avg_shots,
+        `Shots on Target` = avg_shots_on_target,
+        `Fouls` = avg_fouls,
+        `Yellow Cards` = avg_yellow_cards,
+        `Red Cards` = avg_red_cards,
+        stringsAsFactors = FALSE
+      ))
+    }
+    
+    all_teams_average
+  }
+
+  # Render the view_mode reactive value as output for conditionalPanel
+  output$view_mode <- reactive(view_mode())
+
+  # Render combined plot for team comparison
+  output$team_metric_plot <- renderPlotly({
+    req(input$team1, input$team2, input$comparison_metric, view_mode() == "graph")
+    combined_metric <- get_combined_weekly_metric(input$team1, input$team2, input$comparison_metric)
+    
+    fig <- plot_ly(combined_metric, x = ~GW, y = ~Total_Metric_Value, color = ~Team, type = 'scatter', mode = 'lines+markers') %>%
+      layout(
+        title = paste("Comparison of", input$comparison_metric, "between", input$team1, "and", input$team2),
+        xaxis = list(title = "Game Week"),
+        yaxis = list(title = "Metric Value"),
+        legend = list(title = list(text = "Teams"))
+      )
+    
+    fig
+  })
+
+  # Render table showing average metric for each team
+  output$average_metric_table <- renderTable({
+    req(input$team1, input$team2, input$comparison_metric, view_mode() == "graph")
+    
+    team1_avg <- get_team_average_metric(input$team1, input$comparison_metric)
+    team2_avg <- get_team_average_metric(input$team2, input$comparison_metric)
+    
+    average_table <- bind_rows(team1_avg, team2_avg)
+    average_table <- average_table %>%
+      select(Team, Average_Metric_Value) %>%
+      rename("Team" = Team, "Average" = Average_Metric_Value)
+    
+    average_table
+  })
+
+  # Render table showing averages for all teams and all metrics
+  output$all_teams_average_table <- renderTable({
+    req(view_mode() == "table")
+    
+    all_teams_average <- get_all_teams_average()
+    all_teams_average
+  })
+  
+  # Set output options for conditional panels
+  outputOptions(output, "view_mode", suspendWhenHidden = FALSE)
+}
+
+```
+
+Kóðinn setur upp server hlutann fyrir Shiny mælaborðið, þar sem byrjað er á að tengjast gagnagrunninum premier_league.db með RSQLite til að sækja gögn fyrir greiningu og birtingu. Þegar mælaborðið fer af stað, tengist það gagnagrunninum og aftengist síðan sjálfkrafa þegar forritinu er lokað með því að nota onStop til að stjórna tengingunni örugglega.
+
+Gögn um leikvanga eru sótt úr töflunni Stadiums og síað með regex til að innihalda aðeins þau lið sem tilheyra ensku úrvalsdeildinni fyrir tímabilið 2019/20. Það er einnig bætt við tenglum á merki liða sem vistuð eru á staðbundinni slóð. Staðsetningargögnin eru síðan breytt í sf-hlut með st_as_sf() til að gera þau nothæf fyrir leaflet-kort, þar sem leikvangarnir birtast með liðamerkjum á korti.
+
+Næst eru fleiri gögn sótt úr töflunum Games og PlayerStats til að keyra mismunandi SQL fyrirspurnir, sem eru síðan unnar með dplyr og tidyverse til að sía, flokka og reikna ýmsa tölfræði, eins og heildarstig, skot og markaskorun. Þessi gögn eru síðan vistuð í reactive hlutum sem eru uppfærðir þegar notandi velur nýjar inntaksbreytur.
+
+Kóðinn setur upp ýmsar gagnvirkar valmyndir og inntak fyrir notanda með selectInput, sliderInput, og radioButtons. Hvert inntak tengist síðan sérstökum flipum sem vinna með viðeigandi gagnavinnslu, sem er keyrð með SQL fyrirspurnum. Viðbrögð frá inntaki notanda eru unnin með observe og observeEvent, sem leyfa uppfærslu á viðeigandi hlutum mælaborðsins þegar val er breytt.
+
+Líkan fyrir línurit og töflur er útfært með ggplot og plotly, þar sem renderPlotly og renderTable sjá um að búa til myndræna og töflubundna framsetningu gagna, eins og samanburð milli liða, árangur leikmanna og þróun hagnaðar í veðmálum. Að lokum er sérstök útfærsla á litum og stílum fyrir mismunandi metur, t.d. með grænum eða rauðum litum fyrir uppsafnaðan hagnað eða tap.
+
+
+### Keyrsluhnappur Shiny
+
+```{r eval = FALSE}
+shinyApp(ui, server)
+```
+
+Keyrir forritið á tímabundinni Shiny-síðu.
+
+# Niðurstöður
+
+## Mælaborðið
+
+Mælaborðið sem var þróað fyrir þetta verkefni veitir notendum ítarlega innsýn í ensku úrvalsdeildina á tímabilinu 2019/20 og gerir þeim kleift að skoða og greina margvíslega þætti tengda frammistöðu liða, leikmanna og dómara. Það var hannað með það í huga að bjóða upp á fjölbreyttar greiningar á tölfræðilegum mælingum úr leikjum og hvernig ýmsir þættir hafa áhrif á leik niðurstöður, árangur liða og hegðun leikmanna.
+
+Mælaborðið er bæði gagnvirkt og notendavænt, þar sem það býr yfir öflugum greiningartólum sem gerir notendum kleift að kafa djúpt í tölfræði tímabilsins. Með notkun ýmissa grafa á borð við línurita, scatter-rita, súlurita, kökurita, stafrænna taflna og korta þá býður mælaborðið upp á sjónrænt og aðlaðandi mæliborð með auðvelda notkun, sem gerir upplifunina aðgengilega og áhugaverða fyrir mismunandi tegundir notenda. Til að auka notendaupplifun býður það einnig upp á bæði dökkt- og ljóst þema.
+
+## Skipulag mælaborðsins
+
+Mælaborðið er skipulagt í sjö meginsvæði, hvert með sína sérstöku nálgun til að gefa notendum yfirgripsmikla sýn á lykilþáttum tímabilsins. Þau eru eftirfarandi:
+
+![](C:/Users/jakob/Pictures/mælaborð/c.PNG)
+
+### Heim
+
+Á fyrstu síðunni er stutt yfirlit yfir tilgang og markmið mælaborðsins. Hún inniheldur stuttar upplýsingar um uppbyggingu verkefnisins, þar á meðal hvaða gögn eru notuð, hvaða tækni er beitt við vinnslu gagnanna og hverjir eru höfundar mælaborðsins. Auk þess gefur hún notendum leiðbeiningar um hvernig á að nýta mælaborðið sem best, þar sem hver hluti er skýrður og tilgangur hvers hluta útskýrður.
+
+
+### Síðustu ár
+
+Þessi hluti mæla borðsins býður notendum upp á samanburð milli liða yfir nokkur tímabil. Notendur geta valið ákveðin lið og skoðað þróun þeirra yfir árin frá tímabilinu allt frá tímabilinu 2010/11 til og með 2023/24. Ákveðið var að eyða út gögnum um núverandi tímabil, 2024/25 þar sem þau taka stanslausum breytingum. Greiningin er sett fram á línuriti sem sýnir og ber saman stigafjölda liðanna fyrir hvert tímabil, sem veitir mikilvæga innsýn í stöðugleika og frammistöðu liðanna yfir lengri tíma. Þetta getur hjálpað til við að bera kennsl á þau lið sem hafa verið stöðug í toppbaráttunni og þau lið sem hafa sveiflast í árangri. Hægt er að skoða heildarstig, stig frá útileikjum eða stig frá heimaleikjum. Einungis er hægt að velja milli liða sem hafa spilað í úrvalsdeildinni frá 2010 til 2024 en þar sem sum hafa spilað mjög lítið eða eru t.d. að spila í fyrsta sinn núna eru takmarkaðar upplýsingar um þau lið.
+
+![](C:/Users/jakob/Pictures/mælaborð/sidustuar.PNG)
+
+### Stöðutafla
+
+Í þessum hluta mælaborðsins má finna stöðutöflu fyrir liðin þar sem hægt er að flakka um eftir valinni leikviku á tímabilinu 2019/20. Notendur geta valið leikviku með því að nota rennival (e. slider) og fylgst með því hvernig staðan hefur þróast yfir tímabilið. Þetta býður upp á gagnlegt yfirlit yfir framgang liðanna og hvernig stigataflan hefur þróast í rauntíma. Auk þess er hægt að skoða síðustu leiki hvers liðs frá valinni leikviku, sem veitir innsýn í form og frammistöðu liðanna á ákveðnum tímapunkti á tímabilinu.
+
+
+![](C:/Users/jakob/Pictures/mælaborð/stodu.PNG)
+
+### Staðsetningar
+
+Hér er hægt að skoða nákvæmt landfræðilegt yfirlit yfir leikvanga liðanna á korti. Kortið gefur notendum innsýn í landfræðilega dreifingu liða í ensku úrvalsdeildinni og hvernig þau eru staðsett í Englandi. Ásamt kortinu er graf sem sýnir betur samanburð á stærðarröð leikvanganna, miðað við sætisfjölda. Þetta getur veitt áhugaverðar upplýsingar um umfang leikvanganna og hvaða lið hafa aðstöðu til að taka við mestum fjölda áhorfenda.
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/kort.PNG", "C:/Users/jakob/Pictures/mælaborð/kortgraf.PNG"))
+```
+
+### Færanýtni
+
+Á þessu svæði er ýmis greining á frammistöðu leikmanna, sett fram með scatter-myndritum. Notendur geta valið að skoða mismunandi gröf, svo sem samband milli skoraðra marka og leiktíma, samband skota á mark og marka, eða helstu markaskorarar á tímabilinu. Ef valið er að skoða helstu markaskorarana er boðið upp á að sýna markaskorun leikmanna út frá markaframlagi (Mörk + Stoðsendingar), sem gefur betri heildarmynd af því hvaða leikmenn hafa haft mest áhrif á árangur síns liðs.  Ásamt því að velja hversu marga leikmenn þeir vilja skoða (1-251) en 251 er heildarfjöldi þeirra sem skoruðu a.m.k eitt mark á tímabilinu.
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/faerinytni.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/nytni.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/nytni1.PNG"))
+```
+
+### BetStatistics
+
+Þessi síða er sérsniðin fyrir greiningu á veðmála tölfræði fyrir hvert lið. Notendur geta valið lið og skoðað þróun hagnaðar og taps fyrir það lið yfir tímabilið, byggt á hugmyndinni um að einstaklingur hafi sett 10$ veðmál á sigur liðsins í hverjum einasta leik. Grafið sýnir uppsafnaðan hagnað eða tap eftir hverja leikviku, sem gefur innsýn í hvort veðmál á liðið hafi reynst arðsamt eða ekki. Að auki er yfirlit yfir heildarhagnað í lok tímabilsins. 
+
+
+![](C:/Users/jakob/Pictures/mælaborð/bet.PNG)
+
+### Dómararýni
+
+Á þessari síðu er sérstök áhersla lögð á frammistöðu dómara og áhrif þeirra á leiki. Þessi hluti mælaborðsins inniheldur gögn um fjölda brota fyrir hvert spjald, dæmt sigurhlutfall heimaliða og útliða yfir allt tímabilið, og liðið sem hver dómari hefur dæmt hve mestan fjölda sigurleikja hjá. Þetta getur verið gagnlegt til að greina hvort ákveðnir dómarar hafi tilhneigingu til að dæma ákveðin lið á ákveðinn hátt eða hvernig hegðun leikmanna breytist eftir dómara. Þetta veitir mikilvæga innsýn í hlutleysi og áhrif dómara á úrslit leikja.
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/domari1.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/domari2.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/domari3.PNG"))
+```
+
+### Liðin
+
+Í þessum hluta mælaborðsins er hægt að bera saman tölfræði milli tveggja liða í ýmsum flokkum, þar á meðal mörk skoruð, hornspyrnur, skot, brot, spjöld og fleira. Notendur geta valið hvaða lið þeir vilja bera saman og sjá samsett graf sem sýnir frammistöðu liðanna í valda flokknum. Að auki er hægt að fá yfirlit yfir meðaltal tölfræðinnar fyrir öll liðin í deildinni með því að smella á "Show as table", sem veitir heildaryfirlit yfir árangur 
+allra liða í deildinni og hjálpar til við að bera saman þau á áhrifaríkan og fljótlegan hátt.
+
+![Liðin](C:/Users/jakob/Pictures/mælaborð/lidin.PNG)
+
+## Markverðustu niðurstöður
+
+Í þessari greiningu lögðum við áherslu á nokkrar lykilspurningar til að varpa ljósi á ólíka þætti tengda frammistöðu, áhrifum heimavallar og agastjórnar í ensku úrvalsdeildinni á tímabilinu 2019/20. Til að svara rannsóknarspurningunum notuðum við fjölbreyttar greiningar og grafíska framsetningu sem veitir ítarlegar upplýsingar um áhrif þessara þátta á liðin og leikmenn. 
+
+
+- **Hvaða áhrif hefur heimavöllur á árangur liða?** 
+- **Hvaða leikmaður nýtti færin sín sem best?** 
+- **Hvaða lið stóð sig best yfir tímabilið?** 
+
+
+### Hvaða áhrif hefur heimavöllur á árangur liða?
+
+Til að svara þessari fyrstu spurningu skoðum við grafið í 'Síðustu ár' ásamt stöðutöflunni þar sem eftirfarandi gröf og töflur koma fram. Við einbeitum okkur að niðurstöðum efstu og neðstu fimm liða í lok tímabilsins eins og þær birtast í stöðutöflunni.
+
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/a.PNG", "C:/Users/jakob/Pictures/mælaborð/low5.PNG"))
+```
+
+
+Athugum síðan hvernig stigin skiptast ef litið er einungis á fengin stig á heimavelli og útivelli.
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/na.PNG", "C:/Users/jakob/Pictures/mælaborð/an.PNG"))
+```
+
+Það er ljóst að bæði efstu og neðstu liðin nýta sér heimavöllinn til að hámarka árangur sinn, enda er ekkert lið í deildinni með fleiri stig á útivelli en á heimavelli. Þetta staðfestir mikilvægi heimavallarins þegar kemur að úrslitum leikja. Heimavöllurinn veitir liðum forskot sem endurspeglast í betri árangri á heimavelli en á útivelli. Sérstaklega skarar Liverpool fram úr í þessum þætti, og það hefur veruleg áhrif á lokaniðurstöðu þeirra á tímabilinu.
+
+
+--------------------------------------
+
+### Hvaða leikmaður nýtti færin sín sem best
+
+Skoðað var því næst frammistöðu leikmanna:
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/fram1.PNG", "C:/Users/jakob/Pictures/mælaborð/fram2.PNG"))
+```
+
+Hér sést að þegar markframlag leikmanna eru skoðuð bæði út frá mörkum og stoðsendingum, breytist myndin verulega. Þrátt fyrir að Jamie Vardy hafi skorað fleiri mörk en Kevin De Bruyne á þessu tímabili, átti De Bruyne mesta heildarmarkframlagið þegar bæði mörk og stoðsendingar eru teknar með í reikninginn.
+
+Til að dýpka þessa greiningu var skoðað hvernig fimm markahæstu leikmenn tímabilsins nýttu færin sín með því að mæla bæði fjölda mínútna á milli marka og fjölda skota á mark fyrir hvert mark. Í grafinu hér að neðan má sjá þessa leikmenn þar sem litir hafa verið notaðir til að aðgreina þá: Vardy er táknaður með svörtum, Ings með bláum, Aubameyang með grænum, Salah með bleikum og Sterling með rauðum lit. Punktarnir á grafinu gefa upplýsingar um heildarfjölda mínútna spilaðar og fjölda marka, sem gerir það auðvelt að sjá hversu oft hver leikmaður skorar miðað við leiktíma sinn.
+
+
+![](C:/Users/jakob/Pictures/mælaborð/nyting.PNG)
+
+Danny Ings skoraði mark á hverjum 127.81 mínútum og nýtti því færin sín best af þessum fimm leikmönnum. Í kjölfar hans voru Vardy með 132.3 mínútur á mark, Sterling með 133 mínútur á mark, Aubameyang með 142.63 mínútur á mark og að lokum Salah með 151.78 mínútur á mark.
+
+Þegar við skoðum einnig fjölda skota á mark fyrir hvert mark sést að Ings var enn og aftur að nýta færin sín best, þar sem hann þurfti aðeins 1.72 skot á mark fyrir hvert mark sem hann skoraði. Á eftir honum voru Vardy með 1.86 skot á mark, Aubameyang og Sterling með 1.9, og að lokum Salah sem þurfti 3.1 skot á mark.
+
+![Skot á mark](C:/Users/jakob/Pictures/mælaborð/markskot.PNG)
+
+
+Þessar niðurstöður benda til þess að Danny Ings hafi verið markvissasti leikmaðurinn á þessu tímabili, á meðan Salah nýtti færin sín hvað verst af þessum hópi. Þrátt fyrir þetta var Liverpool, lið Salahs, sigurvegari deildarinnar, á meðan Southampton, lið Ings, endaði í 11. sæti. Athyglisvert er að Raheem Sterling hjá Manchester City, sem endaði í öðru sæti, stóð sig einnig betur en Salah, leikmaður sigurliðsins Liverpool. Þetta undirstrikar að þó að einstaklingsárangur í marknýtingu skipti máli, þá er liðsheild og heildarframmistaða liðsins í heild sinni lykilatriði í lokaniðurstöðu deildarinnar.
+
+
+------------------------------
+
+
+### Hvaða lið stóð sig best yfir tímabilið?
+
+Til að svara þriðju og síðustu rannsóknarspurningunni er margt til að skoða. Auðvelt væri að gefa Liverpool þann titil að hafa staðið sig best vegna þess að þeir sigruðu tímabilið. Hér verður hinsvegar skoðað fleira en það til að réttlæta Liverpool tímabilið í ýmsum hlutum s.s sóknum (mörk, horn, skot og fleira), vörn (mörk fengin á sig, brot, sjöld og fleira) og jafnvel veðmálalega séð eða sjá hver í raun og veru stóð sig best.
+
+Sjáum gröf úr flipunum; Liðin, BetStatistics og Stöðutafla.
+
+Byrjum á því að skoða hvaða lið stóð sig best, (líklegast óvænt úrslit) í stórum leikjum. Til þess að sjá það má einfaldlega geta að það sé Wolves samkvæmt þessu grafi:
+
+![Hagnaður Wolves](C:/Users/jakob/Pictures/mælaborð/wolveshagn.PNG)
+
+Hér má sjá að Wolves skilar hagnaði upp á +$179.5 í lok tímabils. Þetta er athyglisvert þar sem Wolves er ekki endilega eitt af bestu liðunum í deildinni, en þrátt fyrir það skilar það mestum hagnaði miðað við það að veðja $10 á sigur í hverjum leik þeirra (Jafntefli og Tap = -$10). Einföld skýring á þessu er að stuðlarnir á Wolves eru oft hærri en á mótherjum þeirra. Þetta þýðir að ef Wolves vinnur leik, þá skilar það meiri hagnaði en ef lið eins og Liverpool eða Manchester City sigrar, þar sem stuðlarnir á þeim liðum eru oft mun lægri. Veðmálasíður ákvarða stuðla út frá sigur líklegra liði þ.e. lið sem er líklegra til að sigra er með lægri stuðul og öfugt.
+
+Stuðlar virka þannig að háir stuðlar skila hærri útborgun en lágir stuðlar. Útborgunin er í raun margfeldi af veðmálinu og stuðlinum. Í þessu samhengi sjáum við í Stöðutöflunni að þegar Wolves sigrar Manchester City á 8. leikviku, eitt sigurstranglegasta lið deildarinnar (endaði í 2. sæti), þá hækkar hagnaðurinn úr -$32.5 í heilan +$167.5, þar sem stuðullinn á Wolves í þeim leik var 21 ($10 veðmál -> $210 útborgun).
+
+![](C:/Users/jakob/Pictures/mælaborð/wolvesstada.PNG)
+
+Þá má einnig nefna að Wolves endar í 7. sæti deildarinnar, sem þykir mjög góður árangur fyrir lið sem komst upp í efstu deild einungis ári á undan.
+
+![](C:/Users/jakob/Pictures/mælaborð/lokwolves.PNG)
+
+Ástæða þess að Liverpool skilaði ekki jafn miklum hagnaði þrátt fyrir að hafa unnið tímabilið er einföld. Þar sem Liverpool er sigurstranglegt lið eru stuðlarnir á þá oftast mjög lágir, yfirleitt á bilinu 1.4 til að hámarki 2 í hverjum leik. Þetta þýðir að hagnaðurinn eykst mjög hægt þar sem lægri stuðlar skila minna ávinnings, samanborið við hærri stuðla sem eru á ólíklegri sigurliðum, eins og Wolves. Þannig myndast minni hagnaður af veðmálum á lið sem er talið líklegt til sigurs en meiri arður af ólíklegum sigurliðum.
+
+
+Til að halda áfram með rannsókn okkar á því hvaða lið stóð sig best, skoðum við nú sóknarleik liðanna með því að lesa út úr töflunni, Liðin.
+
+![](C:/Users/jakob/Pictures/mælaborð/taflalidin1.PNG)
+
+
+Liverpool og Manchester City tróna á toppnum í nánast öllum sóknarþáttum, svo sem mörkum skoruðum, fengnum hornum, skotum og skotum á markið. Einungis Chelsea er með fleiri skot en Liverpool í þessum einum þætti, en að öðru leyti eru Manchester City efstir í öllum flokkum með Liverpool rétt á eftir.
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/livcitymark.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/livcityhorn.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/livcityskotmark.PNG",
+                   "C:/Users/jakob/Pictures/mælaborð/livcityskot.PNG"))
+```
+
+Þessar niðurstöður gefa sterklega til kynna að sóknarleikur þessara tveggja liða hafi átt stóran þátt í að tryggja þeim 1. og 2. sæti í deildinni á þessu tímabili.
+
+Hins vegar er árangursríkur sóknarleikur einn og sér ekki nóg til að ná toppárangri; það er blanda af frábærum sóknarleik og traustum varnarleik sem gerir heildarframmistöðu liðanna svona áhrifamikla.
+
+![](C:/Users/jakob/Pictures/mælaborð/livcitystadan2.PNG)
+
+Hér sést að Liverpool og Manchester City standa framarlega í flestum varnarþáttum. Liverpool fær á sig fæst mörk allra liða, sem sýnir stöðugleika í varnarleik þeirra. Manchester City skarar fram úr með fæst fengin horn og situr þar í fyrsta sæti, en Liverpool er í fjórða sæti á eftir City, Chelsea og Wolves í þeim flokki. Liverpool brýtur einnig minnst af sér að meðaltali á tímabilinu, sem endurspeglast í fæstum fengnum gulum og rauðum spjöldum – Liverpool er með fæst gul og rauð spjöld allra liða. Áhugavert er þó að sjá að Manchester City er í sjöunda sæti yfir fæst gul spjöld og í nítjánda sæti yfir fæst rauð spjöld fengin. Aðeins eitt lið var með hærra meðaltal rauðra spjalda en þeir.
+
+Samt sem áður gefur þessi niðurstaða til kynna að bæði lið leggi áherslu á agaðan varnarleik og takmarkaða brotnotkun til að viðhalda stöðugum varnarárangri. 
+
+```{r}
+include_graphics(c("C:/Users/jakob/Pictures/mælaborð/morkfengincityliv.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/cornersfengin.PNG", 
+                   "C:/Users/jakob/Pictures/mælaborð/brot.PNG",
+                   "C:/Users/jakob/Pictures/mælaborð/gult.PNG",
+                   "C:/Users/jakob/Pictures/mælaborð/rautt.PNG"))
+```
+
+Heildarniðurstöður greiningarinnar á ensku úrvalsdeildinni 2019/20 gefa djúpa innsýn í árangur og frammistöðu liðanna, sem skýrast með samanburði á heimavallarárangri, færninytingu leikmanna og veðmálatölfræði. Heimavöllurinn skiptir verulegu máli þegar kemur að úrslitum leikja, þar sem öll lið í deildinni ná betri árangri á heimavelli en á útivelli. Þetta er líklega vegna stuðnings áhorfenda, ásamt því að leikmenn eru kunnugir leikskilyrðum á heimavelli. Þessi þáttur eykur líkurnar á góðum árangri og sýnir hvernig ytri umgjörð leikja getur haft bein áhrif á frammistöðu liða.
+
+Færninyting leikmanna var einnig skoðuð sérstaklega með það fyrir augum að bera saman hverjir nýta færi sín best. Þar kemur Danny Ings úr Southampton sterkastur inn og skoraði mark á hverjum 127 mínútum með aðeins 1.72 skot á mark að meðaltali til að skora. Þetta gefur til kynna að Ings var ekki aðeins markahæfur, heldur náði hann einnig að nýta færin sín betur en aðrir markaskorarar eins og Jamie Vardy og Mohamed Salah, sem þurftu fleiri skot til að skora mark. Þessar upplýsingar geta verið mikilvægar fyrir þá sem vilja dýpra innsýn í leikmannagildi og árangur á vellinum.
+
+Við skoðun á sóknar- og varnarframmistöðu liða kemur fram að Liverpool og Manchester City eru með afgerandi yfirburði í flestum sóknarflokkum, svo sem mörkum skoruðum, hornum og skotum á mark. Þessi sóknarstyrkur skilar sér í góðri stöðu í deildinni, þar sem þessi lið náðu fyrsta og öðru sæti. En það er ekki bara sóknin sem tryggir þeim árangur; Liverpool fékk á sig fæst mörk allra liða, sem endurspeglar mikilvægi varnarleiksins. Þetta jafnvægi á milli sóknar og vörn hefur augljóslega mikið að segja þegar kemur að því að ná langt í deildinni.
+
+Veðmálatölfræðin sýnir svo að liðið Wolves, þrátt fyrir að vera ekki í efstu sætum, skilaði mestum hagnaði fyrir veðmálara vegna þess að stuðlarnir á þá voru hærri. Ólíklegri sigurliðum, eins og Wolves, er oft gefinn hærri stuðull af veðmálasíðum, sem þýðir að sigur í leikjum þeirra skilar meira en sigur hjá sigurstranglegri liðum eins og Liverpool eða Manchester City. Liverpool, sem vann deildina, skilaði tiltölulega lágu veðmálahagnaði, þar sem stuðlarnir á þá voru lægri vegna mikilla sigurlíkinda. Þessi nálgun sýnir hvernig veðmál geta varpað ljósi á áhugaverða fjármálalega hlið á frammistöðu liða og mikilvægi stuðla þegar kemur að hagnaði.
+
+
+
+
+
+
+## Gæðamat Gagna
+Í heildina eru gögnin umfangsmikil, fjölbreytt og veita sterka innsýn í frammistöðu liðanna í ensku úrvalsdeildinni. Þó er vert að hafa í huga að uppruni gagnanna frá mismunandi gagnaveitum – þar á meðal GitHub, Kaggle og FotMob – getur haft áhrif á samræmi og nákvæmni þeirra. Til að lágmarka skekkjumöguleika beittum við gagnahreinsun með SQL og Regex til að tryggja að gögnin væru flokkuð rétt og sett fram á stöðluðu formi.
+
+Engu að síður geta flóknar breytingar, handvirk skráning og mismunandi skráningarstaðlar frá gagnaveitunum haft áhrif á gæði gagnanna og skapað möguleika á smávægilegum skekkjum í greiningunni. 
+
+Þrátt fyrir ítarlega gagnahreinsun og úrvinnslu má gera ráð fyrir að villur gætu verið til staðar í einhverjum CSV skránum. Slíkar villur gætu verið vegna smávægilegra skráningarmistaka, eins og rangar tölur í einstökum reitum. Þetta gæti leitt til skekkju í niðurstöðum án þess að það væri augljóst í greiningarferlinu og hefði þá áhrif á útkomu í gröfum án okkar vitundar. Til dæmis gæti rangur markafjöldi í einum leik snúið niðurstöðum í samanburðargrafi við önnur lið, eða rangir stuðlar, sem myndi gefa röng merki um raunverulega frammistöðu.
+
+
+## Ályktun
+Greining okkar á ensku úrvalsdeildinni 2019/20 leiddi í ljós margþætta innsýn í hegðun liða, leikmanna og annarra lykilþátta, sem varpar ljósi á flókna samspilið á milli sóknar, varnar, aga og ytri áhrifa eins og heimavallar og stuðnings. Með því að nýta fjölbreytt gagnasafn frá mismunandi uppsprettum ásamt gagnvirku mælaborði tókst okkur að draga fram bæði þekkt og óvænt mynstur.
+
+Árangur Liverpool og Manchester City sýnir fram á mikilvægi jafnvægis í sókn og vörn. Liverpool nýtti styrkleika sína í agaðri vörn og færri brotum til að tryggja sér titilinn, á meðan Manchester City hélt uppi sterkri sókn og sköpun á vellinum. Á hinn bóginn var sérstakt að sjá Wolves, sem skaraði fram úr í veðmálagreiningunni og sýndi að ólíklegri sigurlið geta haft áhrif á fjárhagslega hlið íþrótta. Þetta undirstrikar fjölbreyttan eðli frammistöðugreiningar og nauðsyn þess að líta á fleiri þætti en bara stig í töflu.
+
+Danny Ings stóð sig best í marknýtingu, en niðurstöðurnar undirstrika einnig að einstaklingsárangur er aðeins hluti af stærri myndinni. Liverpool varð sigurvegari, þrátt fyrir að leikmenn þess væru ekki með bestu marknýtinguna, sem sýnir að heildarárangur liðs vegur þyngra en einstakar tölur leikmanna.
+
+Heimavöllurinn spilaði afgerandi hlutverk, þar sem hann veitti liðunum mikilvægt forskot, bæði í efstu og neðstu sætum deildarinnar. Þetta styrkir skilning okkar á áhrifum ytri þátta á árangur. Að sama skapi undirstrika gögnin mikilvægi vandaðrar gagnaöflunar, hreinsunar og úrvinnslu til að tryggja áreiðanlegar niðurstöður.
+
+Að lokum hefur verkefnið sýnt fram á hvernig gagnagreining og sjónræn framsetning getur auðgað skilning á flóknum kerfum eins og ensku úrvalsdeildinni. Þetta mælaborð er dýrmætt verkfæri fyrir knattspyrnuáhugamenn, tölfræðinga og aðila í íþróttaiðnaði, þar sem það sameinar ítarlega greiningu og notendavænt viðmót sem leiðir til aukinnar upplýsingaöflunar og innsæis í fótboltaheiminum.
+
