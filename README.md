@@ -1,6 +1,6 @@
 # Leiðbeiningar - Capstone The Reach
 
-Hér má sjá leiðbeiningar vegna Capstone verkefnis frá okkur Erlendri, Ingvari, Þráni og Jakobi. 
+Hér má sjá leiðbeiningar vegna Capstone verkefnis frá okkur Erlendi, Ingvari, Þráni og Jakobi. 
 
 ## *Um verkefnið*
 Þetta verkefni snýst um að safna saman og sýna töluleg gögn um ensku úrvalsdeildina. 
