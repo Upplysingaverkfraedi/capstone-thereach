@@ -1,58 +1,102 @@
-# Capstone verkefni 
+# Leiðbeiningar - Capstone The Reach
 
-## Verkefni
-Verkefnið er tvíþætt:
+Hér má sjá leiðbeiningar vegna Capstone verkefnis frá okkur Erlendi, Ingvari, Þráni og Jakobi. 
 
-- **Skýrsla** – Þið þurfið að skila tæknilegri skýrslu þar sem þið útskýrið hvernig þið nálguðust gagnaöflun, meðhöndlun gagna, og hvaða niðurstöður þið teljið markverðastar. Þetta þarf að vera á `HTML` formi, t.d. með [RPubs](https://rpubs.com/) fyrir RMarkdown.
-- **Mælaborð og kynning** – Þið þurfið að hanna mælaborð og halda kynningu þar sem þið útskýrið mælaborðið og niðurstöðurnar fyrir bekknum. Mælaborðið getur t.d. verið hýst á [shinyapps.io](https://www.shinyapps.io/).
-
-## Mælaborð
-Mælaborðið er hannað fyrir samnemendur ykkar í upplýsingaverkfræði. Munið að það þarf að:
-- **Sannfæra áhorfendur**: Sýnið þeim hvernig það gagnast.
-- **Skýrt viðmót**: Þið þurfið að tryggja að það sé auðvelt í notkun og framsetningin á gögnum sé skýr.
-
-## Skipulag
-Það eru ný teymi með 3-4 einstaklingum. Þið þurfið að skrá ykkur í Canvas og samþykkja GitHub Classroom verkefni með því að nota teymisnafnið ykkar.
-
-Í tímanum þann 21. október voru lyfturæður um möguleg capstone verkefni. Þið þurfið að velja eitt þeirra verkefna til að vinna með (aðeins eitt teymi má vinna með hvert efni).
-
-## Skil og kynning
-- **Skil á skýrslu**: `PDF` (eða `html`) þarf að vera komið inn á Canvas og GitHub repo fyrir lok dags 18. nóvember (mánudagur).
-- **Kynning á mælaborði**: Þið kynnið mælaborðið í tíma þann 21. nóvember (fimmtudagur). **Skyldumæting**.
-
-## Frjálst val á framsetningu
-Þið getið verið skapandi með framsetningu. Það er mikilvægt að myndirnar og mælaborðið hjálpi til við að segja sögu um gögnin sem fangar athygli áhorfenda.
-
-### Atriði sem skýrslan þarf að innihalda:
-- **Lýsing á gagnaöflun** – Hvaðan komu gögnin og hvernig voru þau fengin?
-- **Gagnavinnsla** – Hvernig voru gögnin meðhöndluð? Notið REGEX til að laga texta.
-- **Markverðustu niðurstöður** – Hverjar voru helstu niðurstöður?
-- **Mælaborðið** – Hvað gerðuð þið og hver var tilgangur þess?
-
-## GitHub Repo
-Þið þurfið að skila öllum skrám í GitHub repo teymisins. 
-
-Munið að `README` skráin þarf að innihalda: 
-- **TL;DR** – Stutt lýsing á verkefninu og niðurstöðum.
-- **Strúktur** – Lýsing á möppum og mikilvægum skrám.
-- **Keyrsluuppsetning** – Hvernig kóði og gagnagrunnur eru settir upp á öðrum tölvum. Öll lykilorð og notendanöfn skulu vera geymd með umhverfisbreytum.
-
-## Einkunnagjöf
-Einkunn verður byggð á:
-- **Gagnafrásögn** – Hversu skýr og aðgengileg er kynningin?
-- **Mælaborðið** – Hversu notendavænt og skýrt er það?
-
----
-
-## Viðvörun: Ekki vista lykilorð í GitHub repo
-
-Að vista lykilorð, notendanöfn eða aðrar viðkvæmar upplýsingar í GitHub repo sem er opinber (public)
-er mjög alvarlegt öryggisbrot. Hér eru nokkrar ástæður fyrir því að það má aldrei gera þetta:
-
-1. **Öryggisbrestur** – Opnar fyrir öryggisbrot.
-2. **Kostnaður** – Þriðji aðili gæti misnotað gögnin.
-3. **Git útgáfusaga** – Það er erfitt að fjarlægja viðkvæmar upplýsingar úr útgáfusögunni.
-4. **Orðspor** – Slíkar villur geta skaðað orðspor þitt sem forritari.
+## *Um verkefnið*
+Þetta verkefni snýst um að safna saman og sýna töluleg gögn um ensku úrvalsdeildina. 
+Tilgangurinn með verkefninu er að reyna sína á sem einfaldastan hátt þær tölulegar upplýsingar 
+Hægt verður að sjá ýmsa hluti í mælaborðinu en á upphafssíðu mælaborðsins eru upplýsingar um mælaborðið sjálft. 
 
 
-  
+## Skref 1 - Clone Git rebo
+Byrja á því að clone-a Git repo (Ef þú/þið kunnið það ekki koma hér leiðbeiningar um hevrnig það er gert)
+
+## *Clone-a Git rebo í gegnum Git Desktop*
+* Fara á *https://github.com/Upplysingaverkfraedi/capstone-thereach* 
+* Næst skal halda sig á main branch (EKKI FARA INN Á NEITT ANNAÐ BRANCH)
+* Næst skal smella á *Code* takkann sem er grænn
+* Þar skal velja *Open with GitHub Desktop*
+* Við þetta opnast GitHub Desktop
+  * Ef desktop var þegar opið er hægt að velja *Leave changes* á því branchi sem síðast var verið að vinna með
+* Næst Skal smella á *Open the repository in your external editor* en þar ætti að vera hnappurinn *Open in Visual Studio Code*
+
+Við þetta á þá verið að búa að clone-a allt og opna main branch í VScode. 
+
+## Skref 2 - Sækja öll nauðsynleg skjöl og forrit
+Það sem þarf til að fá upp endanlegt mælaborð eru eftirfarandi skjöl og forrit:
+* *Database.py*
+* *Games_season19-20.csv*
+* *Premier League Player Stats.csv*
+* *stadiums-with-GPS-coordinates.csv*
+* *CodeForShiny.rmd*
+* Logos mappan
+
+Þetta ætti allt að koma þegar það er clone-að Git rebo en ef ekki 
+þá er hægt að skoða inn á main branch öll skjölin og hlaða þeim beint niður í tölvuna ykkar og færa það inn í rétta möppu. 
+
+## Skref 3 - Passa að allt sé á réttum stað
+Áður en farið er að keyra eitthvað þarf að passa **tvennt** 
+* Búa til **data** möppu (Þetta er gert til að geyma öll csv skjölin sem myndast við keyrsluna svo þau séu ekki fyrir)
+  * Hægt er að búa til hana beint í vscode
+* Allir file-ar séu beint undir CAPSTONE-THEREACH eða sambærilegt en ekki data, s.s. undir sömu möppunni/directory. 
+  * ATH: Ef csv skrár eru undir annari möppu þá þarf að færa þær. 
+
+
+## Skref 4 - Búa til gagnagrunn
+Til að búa til gagnagrunninn þarf einfaldlega að keyra *Database.py*
+* Opna Terminal
+* Slá inn *python Database.py --season "2010-2024" --debug*
+  * Hér er hægt að velja hvaða tímabil(season) á að sækja
+  * Við það að hafa 2010-2024 eru sótt öll tímabil innan þess ramma
+
+Við það að keyra *Database.py* er gagngrunnurinn klár.
+Hann hefur:
+* Sett inn allar þrjár csv skrárnar
+* Tekið upplýsingar frá FotMob.com fótbolta síðunni
+* Hreinsað gögnin
+
+
+## Skref 5 - Keyra upp mælaborðið
+Opna þarf fyrst beint úr file explorer (Finder fyrir apple fólk) R-skjalið
+* CodeForShiny.rmd
+
+# ATH: Passaðu að downloada í console eftirfarandi pökkum með skipun!!
+Þegar opnað er R-studio með CodeForShiny.rmd á að koma upp valmöguleiki að install alla pakka sem þarf.
+Ef það kemur ekki er hægt að slá eftirfarandi inn í Console til að hlaða þeim öllum 
+```bash
+install.packages("tidyverse")
+install.packages("rvest")
+install.packages("dplyr")
+install.packages("DBI")
+install.packages("RSQLite")
+install.packages("shiny")
+install.packages("ggplot2")
+install.packages("plotly")
+install.packages("shinyjs")
+install.packages("shinydashboard")
+install.packages("DT")
+install.packages("sf")
+install.packages("leaflet")
+install.packages("ggimage")
+```
+
+Þegar allir pakkar(packages) eru uppsettir þarf einfaldlega að:
+* Keyra hvern r-chunk frá toppi og niður
+
+Það eru aðeins 8 r-chunks sem þarf að keyra:
+* Lína 8
+* Lína 14
+* Lína 33
+* Lína 46
+* Lína 62
+* Lína 71
+* Lína 253
+* Lína 963 
+
+Síðasti r-chunk er: 
+```{r}
+shinyApp(ui, server)
+```
+
+og með því að keyra hann ætti vefsíðan/mælaborðið að opnast. 
+Á upphafssíðunni koma fram upplýsingar um mælaborðið. 
