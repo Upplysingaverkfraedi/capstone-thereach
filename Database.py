@@ -35,6 +35,7 @@ def create_database():
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS Stadiums (
         Team TEXT PRIMARY KEY,
+        FDCOUK TEXT,
         City TEXT,
         Stadium TEXT,
         Capacity INT,
@@ -104,7 +105,7 @@ def filter_stadiums():
         cursor.execute("SELECT 1 FROM Stadiums WHERE Team = ?", (team[0],))
         if cursor.fetchone() is None:
             cursor.execute("""
-                INSERT INTO Stadiums (Team, City, Stadium, Capacity, Latitude, Longitude, Country)
+                INSERT INTO Stadiums (Team, FDCOUK, City, Stadium, Capacity, Latitude, Longitude, Country)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, team)
 
@@ -134,12 +135,12 @@ def load_additional_csvs():
     conn = sqlite3.connect("premier_league.db")
     cursor = conn.cursor()
 
-    # Clear the Stadiums table to prevent duplicates
-    cursor.execute("DELETE FROM Stadiums")
+    # Drop the Stadiums table to dynamically recreate it
+    cursor.execute("DROP TABLE IF EXISTS Stadiums")
 
     # Load Premier League Player Stats.csv
     player_stats_df = pd.read_csv('Premier League Player Stats.csv')
-    player_stats_df.to_sql('PlayerStats', conn, if_exists='append', index=False)
+    player_stats_df.to_sql('PlayerStats', conn, if_exists='replace', index=False)
 
     # Load stadiums-with-GPS-coordinates.csv
     stadiums_df = pd.read_csv('stadiums-with-GPS-coordinates.csv')
@@ -147,8 +148,8 @@ def load_additional_csvs():
     # Trim whitespace from the Team column
     stadiums_df['Team'] = stadiums_df['Team'].str.strip()
 
-    # Save the cleaned data into the Stadiums table
-    stadiums_df.to_sql('Stadiums', conn, if_exists='append', index=False)
+    # Dynamically recreate the Stadiums table with all columns from the CSV
+    stadiums_df.to_sql('Stadiums', conn, if_exists='replace', index=False)
 
     conn.commit()
     conn.close()
